@@ -64,16 +64,14 @@ func parseCSV(filename string) ([]db.Bank, []db.Country, error) {
 				country.ISO2Code = cell
 			case 1:
 				bank.SwiftCode = cell
-			case 2:
-				bank.CodeType = cell
+			// Skip index 2 (CODE TYPE) - "Redundant columns in the file may be omitted."
 			case 3:
-				bank.Name = cell
+				bank.BankName = cell
 			case 4:
 				bank.Address = cell
-			case 5:
-				bank.TownName = cell
+			// Skip index 5 (TOWN NAME) - "Redundant columns in the file may be omitted."
 			case 6:
-				country.Name = cell
+				country.CountryName = cell
 			case 7:
 				country.TimeZone = cell
 			default:
