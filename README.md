@@ -1,2 +1,3 @@
-# remitly-intern-2025
+# swift-api
+
 Home exercise for potential interns
