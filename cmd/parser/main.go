@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/mwojtyna/swift-api/config"
 	"github.com/mwojtyna/swift-api/internal/db"
@@ -29,12 +30,10 @@ func main() {
 	}
 	logger.Println("Connected to db")
 
-	banks, countries, err := parseCSV(csv_name)
+	_, _, err = parseCSV(csv_name)
 	if err != nil {
 		logger.Fatalf(`Error parsing file and inserting data to db '%s': "%s"`, csv_name, err.Error())
 	}
-	logger.Println(banks)
-	logger.Println(countries)
 }
 
 func parseCSV(filename string) ([]db.Bank, []db.Country, error) {
@@ -53,34 +52,52 @@ func parseCSV(filename string) ([]db.Bank, []db.Country, error) {
 
 	var banks []db.Bank
 	var countries []db.Country
-	for _, row := range records[1:] { // Skip header row
-		var bank db.Bank
-		var country db.Country
-
-		for i, cell := range row {
-			switch i {
-			case 0:
-				bank.CountryISO2Code = cell
-				country.ISO2Code = cell
-			case 1:
-				bank.SwiftCode = cell
-			// Skip index 2 (CODE TYPE) - "Redundant columns in the file may be omitted."
-			case 3:
-				bank.BankName = cell
-			case 4:
-				bank.Address = cell
-			// Skip index 5 (TOWN NAME) - "Redundant columns in the file may be omitted."
-			case 6:
-				country.CountryName = cell
-			case 7:
-				country.TimeZone = cell
-			default:
-				logger.Printf(`Unexpected cell "%s" with index=%d in row "%s"`, cell, i, row)
-			}
-
-			banks = append(banks, bank)
-			countries = append(countries, country)
+	for i, record := range records[1:] { // Skip header row
+		if len(record) != 8 {
+			logger.Printf(`Skipping row %d with unexpected length "%s"`, i, record)
+			continue
 		}
+
+		countryCode := strings.ToUpper(record[0])
+		swiftCode := record[1]
+		// Skip index 2 (CODE TYPE) - "Redundant columns in the file may be omitted."
+		bankName := record[3]
+		bankAddress := record[4]
+		// Skip index 5 (TOWN NAME) - "Redundant columns in the file may be omitted."
+		countryName := strings.ToUpper(record[6])
+		countryTimeZone := record[7]
+
+		if len(countryCode) != 2 {
+			logger.Printf(`Skipping row %d with invalid country code "%s" in "%s"`, i, countryCode, record)
+			continue
+		}
+		if len(swiftCode) != 11 {
+			logger.Printf(`Skipping row %d with invalid SWIFT code "%s" in "%s"`, i, swiftCode, record)
+			continue
+		}
+
+		hqSwiftCode := ""
+		const hqPartLen = 8
+		if swiftCode[hqPartLen:] != "XXX" {
+			hqSwiftCode = swiftCode[:hqPartLen] + "XXX"
+		}
+
+		bank := db.Bank{
+			SwiftCode:       swiftCode,
+			HqSwiftCode:     hqSwiftCode,
+			CountryISO2Code: countryCode,
+			BankName:        bankName,
+			Address:         bankAddress,
+		}
+		// Countries will be deduplicated while inserting into db
+		country := db.Country{
+			ISO2Code:    countryCode,
+			CountryName: countryName,
+			TimeZone:    countryTimeZone,
+		}
+
+		banks = append(banks, bank)
+		countries = append(countries, country)
 	}
 
 	return banks, countries, nil
