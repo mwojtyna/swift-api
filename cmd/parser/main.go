@@ -30,13 +30,15 @@ func main() {
 	}
 	logger.Println("Connected to db")
 
-	_, _, err = parseCSV(csv_name)
+	banks, countries, err := parseCSV(csv_name)
 	if err != nil {
 		logger.Fatalf(`Error parsing file and inserting data to db '%s': "%s"`, csv_name, err.Error())
 	}
+	logger.Printf("Parsed %d banks, %d countries", len(banks), len(countries))
 }
 
-func parseCSV(filename string) ([]db.Bank, []db.Country, error) {
+type Countries = map[db.Country]struct{} // Dumb hack because Go doesn't have sets
+func parseCSV(filename string) ([]db.Bank, Countries, error) {
 	file, err := os.Open(filename)
 	if err != nil {
 		return nil, nil, err
@@ -51,7 +53,8 @@ func parseCSV(filename string) ([]db.Bank, []db.Country, error) {
 	}
 
 	var banks []db.Bank
-	var countries []db.Country
+	countries := make(Countries)
+
 	for i, record := range records[1:] { // Skip header row
 		if len(record) != 8 {
 			logger.Printf(`Skipping row %d with unexpected length "%s"`, i, record)
@@ -76,6 +79,7 @@ func parseCSV(filename string) ([]db.Bank, []db.Country, error) {
 			continue
 		}
 
+		// If this code doesn't end with XXX, then the first 8 characters are the swift code for HQ (plus XXX)
 		hqSwiftCode := ""
 		const hqPartLen = 8
 		if swiftCode[hqPartLen:] != "XXX" {
@@ -89,7 +93,6 @@ func parseCSV(filename string) ([]db.Bank, []db.Country, error) {
 			BankName:        bankName,
 			Address:         bankAddress,
 		}
-		// Countries will be deduplicated while inserting into db
 		country := db.Country{
 			ISO2Code:    countryCode,
 			CountryName: countryName,
@@ -97,7 +100,7 @@ func parseCSV(filename string) ([]db.Bank, []db.Country, error) {
 		}
 
 		banks = append(banks, bank)
-		countries = append(countries, country)
+		countries[country] = struct{}{} // Add to set
 	}
 
 	return banks, countries, nil
