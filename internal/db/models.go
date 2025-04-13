@@ -3,6 +3,7 @@ package db
 type Bank struct {
 	CountryISO2Code string
 	SwiftCode       string
+	CodeType        string
 	Name            string
 	Address         string
 	TownName        string
