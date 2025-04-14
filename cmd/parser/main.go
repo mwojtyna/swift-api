@@ -20,7 +20,7 @@ func main() {
 
 	env, err := config.LoadEnv()
 	if err != nil {
-		logger.Fatalf(`Error reading config: "%s"`, err.Error())
+		logger.Fatalf(`Error reading envs: "%s"`, err.Error())
 	}
 	logger.Println("Read envs")
 

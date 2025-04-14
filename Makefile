@@ -3,13 +3,13 @@ BIN_DIR=bin
 SERVER_BIN=$(BIN_DIR)/server
 PARSER_BIN=$(BIN_DIR)/parse-swift
 
-build: 
+build-server: 
 	@go build -o $(SERVER_BIN) cmd/server/main.go
 
 build-parser: 
 	@go build -o $(PARSER_BIN) cmd/parser/main.go
 
-serve: build
+serve: build-server
 	@./$(SERVER_BIN)
 
 parse: build-parser
@@ -18,4 +18,4 @@ parse: build-parser
 clean:
 	@rm -rf bin
 
-.PHONY: build build-parser serve parse clean
+.PHONY: build-server build-parser serve parse migrate clean
