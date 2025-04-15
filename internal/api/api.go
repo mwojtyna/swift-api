@@ -14,6 +14,10 @@ func WriteJSON(w http.ResponseWriter, status int, v any) error {
 	return json.NewEncoder(w).Encode(v)
 }
 
+func WriteError(w http.ResponseWriter, status int) {
+	http.Error(w, http.StatusText(status), status)
+}
+
 func NewAPIServer(address string, db *sqlx.DB, logger *log.Logger) *APIServer {
 	return &APIServer{
 		address: address,

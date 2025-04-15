@@ -1,6 +1,8 @@
 package api
 
 import (
+	"database/sql"
+	"errors"
 	"net/http"
 
 	"github.com/mwojtyna/swift-api/internal/db"
@@ -10,20 +12,24 @@ import (
 func (s *APIServer) getSwiftCodeDetailsV1(w http.ResponseWriter, r *http.Request) {
 	swiftCode := r.PathValue("swiftCode")
 	if swiftCode == "" {
-		w.WriteHeader(http.StatusBadRequest)
+		WriteError(w, 400)
 		return
 	}
 
 	bank, err := db.GetBank(s.db, swiftCode)
+	if errors.Is(err, sql.ErrNoRows) {
+		WriteError(w, 404)
+		return
+	}
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		WriteError(w, 500)
 		return
 	}
 
 	if bank.IsHq() {
 		branchesRaw, err := db.GetBankBranches(s.db, swiftCode)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+			WriteError(w, 500)
 			return
 		}
 
@@ -49,7 +55,7 @@ func (s *APIServer) getSwiftCodeDetailsV1(w http.ResponseWriter, r *http.Request
 
 		err = WriteJSON(w, 200, res)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+			WriteError(w, 500)
 			return
 		}
 	} else {
@@ -64,7 +70,7 @@ func (s *APIServer) getSwiftCodeDetailsV1(w http.ResponseWriter, r *http.Request
 
 		err = WriteJSON(w, 200, res)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+			WriteError(w, 500)
 			return
 		}
 	}
