@@ -30,12 +30,12 @@ func IsEmpty(db *sql.DB) (bool, error) {
 		return false, err
 	}
 
-	count := new(int)
+	var count int
 	rows.Next()
-	err = rows.Scan(count)
+	err = rows.Scan(&count)
 	if err != nil {
 		return false, err
 	}
 
-	return *count == 0, nil
+	return count == 0, nil
 }
