@@ -1,1 +1,33 @@
 package main
+
+import (
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/mwojtyna/swift-api/config"
+	"github.com/mwojtyna/swift-api/internal/api"
+	"github.com/mwojtyna/swift-api/internal/db"
+)
+
+var logger = log.New(os.Stderr, "[API] ", log.LstdFlags|log.Lshortfile)
+
+func main() {
+	env, err := config.LoadEnv()
+	if err != nil {
+		logger.Fatalf(`Error reading envs: "%s"`, err.Error())
+	}
+	logger.Println("Read envs")
+
+	pg, err := db.Connect(env.DB_USER, env.DB_PASS, env.DB_NAME)
+	if err != nil {
+		logger.Fatalf(`Error connecting to db: "%s"`, err.Error())
+	}
+	logger.Println("Connected to db")
+
+	addr := fmt.Sprintf(":%s", env.API_PORT)
+	server := api.NewAPIServer(addr, pg, logger)
+
+	server.Run()
+	logger.Printf("Server running on %s", addr)
+}
