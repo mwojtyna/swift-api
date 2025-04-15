@@ -1,5 +1,17 @@
 package api
 
+import (
+	"log"
+
+	"github.com/jmoiron/sqlx"
+)
+
+type APIServer struct {
+	address string
+	db      *sqlx.DB
+	logger  *log.Logger
+}
+
 type BankBranch struct {
 	Address       string `json:"address"`
 	BankName      string `json:"bankName"`

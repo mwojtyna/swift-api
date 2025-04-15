@@ -25,14 +25,9 @@ func Connect(user string, password string, dbName string) (*sqlx.DB, error) {
 }
 
 func IsEmpty(db *sqlx.DB) (bool, error) {
-	rows, err := db.Query("SELECT COUNT(*) FROM bank, country")
-	if err != nil {
-		return false, err
-	}
-
 	var count int
-	rows.Next()
-	err = rows.Scan(&count)
+
+	err := db.Get(&count, "SELECT COUNT(*) FROM bank")
 	if err != nil {
 		return false, err
 	}

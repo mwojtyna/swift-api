@@ -27,26 +27,20 @@ func (s *APIServer) getBankBySwiftCodeV1(w http.ResponseWriter, r *http.Request)
 	}
 	branches := utils.Map(branchesRaw, func(b db.Bank) BankBranch {
 		return BankBranch{
-			Address:       bank.Address,
-			BankName:      bank.BankName,
-			CountryISO2:   bank.CountryISO2Code,
-			CountryName:   "CHUJ",
-			IsHeadquarter: bank.HqSwiftCode.Valid == false, // If HQ code is NULL, then this bank is HQ
-			SwiftCode:     bank.SwiftCode,
+			Address:       b.Address,
+			BankName:      b.BankName,
+			CountryISO2:   b.CountryISO2Code,
+			CountryName:   b.CountryName,
+			IsHeadquarter: b.HqSwiftCode.Valid == false, // If HQ code is NULL, then this bank is HQ
+			SwiftCode:     b.SwiftCode,
 		}
 	})
-
-	country, err := db.GetCountry(s.db, bank.CountryISO2Code)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
 
 	res := GetSwiftCodeResponse{
 		Address:       bank.Address,
 		BankName:      bank.BankName,
 		CountryISO2:   bank.CountryISO2Code,
-		CountryName:   country.CountryName,
+		CountryName:   bank.CountryName,
 		IsHeadquarter: bank.HqSwiftCode.Valid == false, // If HQ code is NULL, then this bank is HQ
 		SwiftCode:     bank.SwiftCode,
 		Branches:      branches,

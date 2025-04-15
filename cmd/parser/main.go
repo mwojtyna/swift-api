@@ -4,9 +4,7 @@ import (
 	"database/sql"
 	"encoding/csv"
 	"log"
-	"maps"
 	"os"
-	"slices"
 	"strings"
 
 	"github.com/mwojtyna/swift-api/config"
@@ -35,24 +33,17 @@ func main() {
 
 	empty, err := db.IsEmpty(pg)
 	if err != nil {
-		logger.Fatalf(`Error checking if DB tables are empty: "%s"`, err.Error())
+		logger.Fatalf(`Error checking if DB is empty: "%s"`, err.Error())
 	}
 	if !empty {
-		logger.Fatalln("Error: DB tables aren't empty")
+		logger.Fatalln("Error: DB isn't empty")
 	}
 
-	banks, countries, err := parseCSV(csv_name)
+	banks, err := parseCSV(csv_name)
 	if err != nil {
 		logger.Fatalf(`Error parsing file and inserting data to db '%s': "%s"`, csv_name, err.Error())
 	}
-	logger.Printf("Parsed %d banks, %d countries", len(banks), len(countries))
-
-	// Insert countries first because of DB relationships
-	err = db.InsertCountries(pg, countries)
-	if err != nil {
-		logger.Fatalf(`Error inserting countries: "%s"`, err.Error())
-	}
-	logger.Println("Inserted countries")
+	logger.Printf("Parsed %d banks", len(banks))
 
 	err = db.InsertBanks(pg, banks)
 	if err != nil {
@@ -63,23 +54,22 @@ func main() {
 	logger.Println("Done!")
 }
 
-func parseCSV(filename string) ([]db.Bank, []db.Country, error) {
+func parseCSV(filename string) ([]db.Bank, error) {
 	file, err := os.Open(filename)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	defer file.Close()
 
 	reader := csv.NewReader(file)
 	records, err := reader.ReadAll()
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	var banks, hqBanks []db.Bank
 	const hqPartLen = 8
 	hqBankCodes := make(map[string]struct{}) // Dumb hack because Go doesn't have sets
-	countriesMap := make(map[db.Country]struct{})
 
 	for i, record := range records[1:] { // Skip header row
 		if len(record) != 8 {
@@ -94,7 +84,7 @@ func parseCSV(filename string) ([]db.Bank, []db.Country, error) {
 		bankAddress := record[4]
 		// Skip index 5 (TOWN NAME) - "Redundant columns in the file may be omitted."
 		countryName := strings.ToUpper(record[6])
-		countryTimeZone := record[7]
+		// Skip index 7 (TIME ZONE) - "Redundant columns in the file may be omitted."
 
 		if len(countryCode) != 2 {
 			logger.Printf(`Skipping row %d with invalid country code "%s" in "%s"`, i, countryCode, record)
@@ -108,14 +98,10 @@ func parseCSV(filename string) ([]db.Bank, []db.Country, error) {
 		bank := db.Bank{
 			SwiftCode:       swiftCode,
 			HqSwiftCode:     sql.NullString{},
-			CountryISO2Code: countryCode,
 			BankName:        bankName,
 			Address:         bankAddress,
-		}
-		country := db.Country{
-			ISO2Code:    countryCode,
-			CountryName: countryName,
-			TimeZone:    countryTimeZone,
+			CountryISO2Code: countryCode,
+			CountryName:     countryName,
 		}
 
 		// If swift code doesn't end with XXX, then the first 8 characters are the swift code for this bank's HQ (plus XXX)
@@ -133,8 +119,6 @@ func parseCSV(filename string) ([]db.Bank, []db.Country, error) {
 			hqBankCodes[swiftCode] = struct{}{} // Add to set
 			hqBanks = append(hqBanks, bank)
 		}
-
-		countriesMap[country] = struct{}{} // Add to set
 	}
 
 	// EDGE CASE: Remove bank's hq_code if HQ doesn't exist (e.g. ALBPPLP1XXX doesn't exist, but ALBPPLP1BMW does)
@@ -154,8 +138,5 @@ func parseCSV(filename string) ([]db.Bank, []db.Country, error) {
 	// Make HQ banks appear first in array to prevent foreign key errors
 	sortedBanks := append(hqBanks, banks...)
 
-	// Convert back to array
-	countries := slices.Collect(maps.Keys(countriesMap))
-
-	return sortedBanks, countries, nil
+	return sortedBanks, nil
 }
