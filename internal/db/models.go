@@ -1,8 +1,10 @@
 package db
 
+import "database/sql"
+
 type Bank struct {
 	SwiftCode       string
-	HqSwiftCode     string
+	HqSwiftCode     sql.NullString
 	CountryISO2Code string
 	BankName        string
 	Address         string

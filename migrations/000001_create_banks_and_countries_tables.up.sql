@@ -1,3 +1,5 @@
+-- TODO: Add indexes
+
 CREATE TABLE IF NOT EXISTS country (
 	iso2_code varchar(2) PRIMARY KEY,
 	country_name text NOT NULL,

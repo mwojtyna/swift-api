@@ -1,9 +1,12 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/csv"
 	"log"
+	"maps"
 	"os"
+	"slices"
 	"strings"
 
 	"github.com/mwojtyna/swift-api/config"
@@ -24,7 +27,7 @@ func main() {
 	}
 	logger.Println("Read envs")
 
-	_, err = db.Connect(env.DB_USER, env.DB_PASS, env.DB_NAME)
+	pg, err := db.Connect(env.DB_USER, env.DB_PASS, env.DB_NAME)
 	if err != nil {
 		logger.Fatalf(`Error connecting to db: "%s"`, err.Error())
 	}
@@ -35,10 +38,21 @@ func main() {
 		logger.Fatalf(`Error parsing file and inserting data to db '%s': "%s"`, csv_name, err.Error())
 	}
 	logger.Printf("Parsed %d banks, %d countries", len(banks), len(countries))
+
+	err = db.InsertCountries(pg, countries)
+	if err != nil {
+		logger.Fatalf(`Error inserting countries: "%s"`, err.Error())
+	}
+	logger.Println("Inserted countries")
+
+	err = db.InsertBanks(pg, banks)
+	if err != nil {
+		logger.Fatalf(`Error inserting banks: "%s"`, err.Error())
+	}
+	logger.Println("Inserted banks")
 }
 
-type Countries = map[db.Country]struct{} // Dumb hack because Go doesn't have sets
-func parseCSV(filename string) ([]db.Bank, Countries, error) {
+func parseCSV(filename string) ([]db.Bank, []db.Country, error) {
 	file, err := os.Open(filename)
 	if err != nil {
 		return nil, nil, err
@@ -46,14 +60,15 @@ func parseCSV(filename string) ([]db.Bank, Countries, error) {
 	defer file.Close()
 
 	reader := csv.NewReader(file)
-
 	records, err := reader.ReadAll()
 	if err != nil {
 		return nil, nil, err
 	}
 
-	var banks []db.Bank
-	countries := make(Countries)
+	var banks, hqBanks []db.Bank
+	const hqPartLen = 8
+	hqBankCodes := make(map[string]struct{}) // Dumb hack because Go doesn't have sets
+	countriesMap := make(map[db.Country]struct{})
 
 	for i, record := range records[1:] { // Skip header row
 		if len(record) != 8 {
@@ -79,16 +94,9 @@ func parseCSV(filename string) ([]db.Bank, Countries, error) {
 			continue
 		}
 
-		// If this code doesn't end with XXX, then the first 8 characters are the swift code for HQ (plus XXX)
-		hqSwiftCode := ""
-		const hqPartLen = 8
-		if swiftCode[hqPartLen:] != "XXX" {
-			hqSwiftCode = swiftCode[:hqPartLen] + "XXX"
-		}
-
 		bank := db.Bank{
 			SwiftCode:       swiftCode,
-			HqSwiftCode:     hqSwiftCode,
+			HqSwiftCode:     sql.NullString{},
 			CountryISO2Code: countryCode,
 			BankName:        bankName,
 			Address:         bankAddress,
@@ -99,9 +107,44 @@ func parseCSV(filename string) ([]db.Bank, Countries, error) {
 			TimeZone:    countryTimeZone,
 		}
 
-		banks = append(banks, bank)
-		countries[country] = struct{}{} // Add to set
+		// If swift code doesn't end with XXX, then the first 8 characters are the swift code for this bank's HQ (plus XXX)
+		// We assume that this HQ exists, later we remove ones that don't (we use a set to keep track of HQs that exist)
+		// I think this is the best way to minimize iterating through the banks
+		const hqPartLen = 8
+		if swiftCode[hqPartLen:] != "XXX" {
+			bank.HqSwiftCode = sql.NullString{
+				String: swiftCode[:hqPartLen] + "XXX",
+				Valid:  true,
+			}
+			banks = append(banks, bank)
+		} else {
+			// If it *does* end with XXX, then it is an HQ code and this bank is the HQ
+			hqBankCodes[swiftCode] = struct{}{} // Add to set
+			hqBanks = append(hqBanks, bank)
+		}
+
+		countriesMap[country] = struct{}{} // Add to set
 	}
 
-	return banks, countries, nil
+	// EDGE CASE: Remove bank's hq_code if HQ doesn't exist (e.g. ALBPPLP1XXX doesn't exist, but ALBPPLP1BMW does)
+	for i := range banks {
+		b := &banks[i]
+		if !b.HqSwiftCode.Valid {
+			continue
+		}
+
+		_, ok := hqBankCodes[b.HqSwiftCode.String]
+		if !ok {
+			// logger.Printf("Removed hq code %s from bank %+v", b.HqSwiftCode.String, b)
+			b.HqSwiftCode = sql.NullString{}
+		}
+	}
+
+	// Make HQ banks appear first in array to prevent foreign key errors
+	sortedBanks := append(hqBanks, banks...)
+
+	// Convert back to array
+	countries := slices.Collect(maps.Keys(countriesMap))
+
+	return sortedBanks, countries, nil
 }
