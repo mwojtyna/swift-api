@@ -23,7 +23,7 @@ func NewAPIServer(address string, db *sqlx.DB, logger *log.Logger) *APIServer {
 }
 
 func (s *APIServer) Run() {
-	http.HandleFunc("/v1/swift-codes/{swiftCode}", s.getBankBySwiftCodeV1)
+	http.HandleFunc("/v1/swift-codes/{swiftCode}", s.getSwiftCodeDetailsV1)
 
 	http.ListenAndServe(s.address, nil)
 }

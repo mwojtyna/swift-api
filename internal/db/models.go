@@ -10,3 +10,8 @@ type Bank struct {
 	CountryISO2Code string         `db:"country_iso2_code"`
 	CountryName     string         `db:"country_name"`
 }
+
+func (b *Bank) IsHq() bool {
+	// If HQ code is NULL, then this bank is HQ
+	return !b.HqSwiftCode.Valid
+}

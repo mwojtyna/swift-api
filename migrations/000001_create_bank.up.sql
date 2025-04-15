@@ -1,3 +1,4 @@
+-- TODO: Consider adding is_headquarters to table
 CREATE TABLE IF NOT EXISTS bank (
 	swift_code VARCHAR(11) PRIMARY KEY,
 	hq_swift_code VARCHAR(11) REFERENCES bank(swift_code) ON DELETE SET NULL,
