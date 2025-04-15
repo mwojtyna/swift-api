@@ -23,3 +23,19 @@ func Connect(user string, password string, dbName string) (*sql.DB, error) {
 
 	return db, nil
 }
+
+func IsEmpty(db *sql.DB) (bool, error) {
+	rows, err := db.Query("SELECT COUNT(*) FROM bank, country")
+	if err != nil {
+		return false, err
+	}
+
+	count := new(int)
+	rows.Next()
+	err = rows.Scan(count)
+	if err != nil {
+		return false, err
+	}
+
+	return *count == 0, nil
+}

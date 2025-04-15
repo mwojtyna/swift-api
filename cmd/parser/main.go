@@ -39,6 +39,15 @@ func main() {
 	}
 	logger.Printf("Parsed %d banks, %d countries", len(banks), len(countries))
 
+	empty, err := db.IsEmpty(pg)
+	if err != nil {
+		logger.Fatalf(`Error checking if DB tables are empty: "%s"`, err.Error())
+	}
+	if !empty {
+		logger.Fatalln("Error: DB tables aren't empty")
+	}
+
+	// Insert countries first because of DB relationships
 	err = db.InsertCountries(pg, countries)
 	if err != nil {
 		logger.Fatalf(`Error inserting countries: "%s"`, err.Error())
@@ -50,6 +59,8 @@ func main() {
 		logger.Fatalf(`Error inserting banks: "%s"`, err.Error())
 	}
 	logger.Println("Inserted banks")
+
+	logger.Println("Done!")
 }
 
 func parseCSV(filename string) ([]db.Bank, []db.Country, error) {
