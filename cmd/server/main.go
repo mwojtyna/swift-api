@@ -28,6 +28,6 @@ func main() {
 	addr := fmt.Sprintf(":%s", env.API_PORT)
 	server := api.NewAPIServer(addr, pg, logger)
 
-	server.Run()
 	logger.Printf("Server running on %s", addr)
+	server.Run()
 }

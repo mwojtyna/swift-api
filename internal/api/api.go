@@ -27,7 +27,11 @@ func NewAPIServer(address string, db *sqlx.DB, logger *log.Logger) *APIServer {
 }
 
 func (s *APIServer) Run() {
-	http.HandleFunc("/v1/swift-codes/{swiftCode}", s.getSwiftCodeDetailsV1)
+	routerV1 := http.NewServeMux()
+	routerV1.HandleFunc("GET /swift-codes/{swiftCode}", s.getSwiftCodeDetailsV1)
 
-	http.ListenAndServe(s.address, nil)
+	rootRouter := http.NewServeMux()
+	rootRouter.Handle("/v1/", http.StripPrefix("/v1", routerV1))
+
+	http.ListenAndServe(s.address, rootRouter)
 }
