@@ -1,6 +1,8 @@
 package db
 
-import "database/sql"
+import (
+	"database/sql"
+)
 
 type Bank struct {
 	SwiftCode       string         `db:"swift_code"`
@@ -11,7 +13,7 @@ type Bank struct {
 	CountryName     string         `db:"country_name"`
 }
 
-func (b *Bank) IsHQ() bool {
+func (b *Bank) IsHq() bool {
 	// If HQ code is NULL, then this bank is HQ
 	return !b.HqSwiftCode.Valid
 }

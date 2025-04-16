@@ -1,6 +1,9 @@
 package db
 
 import (
+	"database/sql"
+	"errors"
+
 	"github.com/jmoiron/sqlx"
 )
 
@@ -39,6 +42,25 @@ func GetBanksInCountry(db *sqlx.DB, countryCode string) ([]Bank, error) {
 	}
 
 	return banks, nil
+}
+
+func CheckBankHqExists(db *sqlx.DB, hqSwiftCode string) (bool, error) {
+	_, err := GetBank(db, hqSwiftCode)
+
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		// Error other than ErrNoRows occurred
+		return false, err
+	} else if errors.Is(err, sql.ErrNoRows) {
+		// Bank's HQ not found
+		return false, nil
+	} else {
+		// Bank's HQ found
+		return true, nil
+	}
+}
+
+func InsertBank(db *sqlx.DB, bank Bank) error {
+	return InsertBanks(db, []Bank{bank})
 }
 
 func InsertBanks(db *sqlx.DB, banks []Bank) error {

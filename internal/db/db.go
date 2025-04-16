@@ -4,8 +4,10 @@ import (
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
+	"github.com/lib/pq"
 )
+
+const UniqueViolationErrorCode = pq.ErrorCode("23505")
 
 func Connect(user string, password string, dbName string) (*sqlx.DB, error) {
 	// Disable SSL, not needed for this project

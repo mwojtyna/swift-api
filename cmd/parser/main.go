@@ -9,6 +9,7 @@ import (
 
 	"github.com/mwojtyna/swift-api/config"
 	"github.com/mwojtyna/swift-api/internal/db"
+	"github.com/mwojtyna/swift-api/internal/utils"
 )
 
 var logger = log.New(os.Stderr, "[CSV PARSER] ", log.LstdFlags|log.Lshortfile)
@@ -114,10 +115,10 @@ func parseCSV(filename string) ([]db.Bank, error) {
 		// If swift code doesn't end with XXX, then the first 8 characters are the swift code for this bank's HQ (plus XXX)
 		// We assume that this HQ exists, later we remove ones that don't (we use a set to keep track of HQs that exist)
 		// I think this is the best way to minimize iterating through the banks
-		const hqPartLen = 8
-		if swiftCode[hqPartLen:] != "XXX" {
+		isHq, hqCode := utils.IsSwiftCodeHq(swiftCode)
+		if !isHq {
 			bank.HqSwiftCode = sql.NullString{
-				String: swiftCode[:hqPartLen] + "XXX",
+				String: hqCode,
 				Valid:  true,
 			}
 			banks = append(banks, bank)
