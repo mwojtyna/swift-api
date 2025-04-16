@@ -3,6 +3,7 @@ package api
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/lib/pq"
@@ -116,6 +117,7 @@ func (s *APIServer) handleGetSwiftCodesForCountryV1(w http.ResponseWriter, r *ht
 func (s *APIServer) handleAddSwiftCodeV1(w http.ResponseWriter, r *http.Request) error {
 	var req AddSwiftCodeReq
 
+	// 400
 	err := ReadJSON(w, r, &req)
 	if err != nil {
 		res := MessageRes{Message: err.Error()}
@@ -123,6 +125,7 @@ func (s *APIServer) handleAddSwiftCodeV1(w http.ResponseWriter, r *http.Request)
 		return nil
 	}
 
+	// 422
 	err = ValidateStruct(req, s.validate)
 	if err != nil {
 		res := MessageRes{Message: err.Error()}
@@ -170,8 +173,32 @@ func (s *APIServer) handleAddSwiftCodeV1(w http.ResponseWriter, r *http.Request)
 		return pgErr
 	}
 
-	res := MessageRes{Message: "SWIFT code added successfully"}
+	res := MessageRes{Message: fmt.Sprintf("Added bank with SWIFT code %s", bank.SwiftCode)}
 	err = WriteJSON(w, http.StatusCreated, res)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *APIServer) handleDeleteSwiftCodeV1(w http.ResponseWriter, r *http.Request) error {
+	swiftCode := r.PathValue("swiftCode")
+	if swiftCode == "" {
+		WriteHTTPError(w, http.StatusBadRequest)
+		return nil
+	}
+
+	err := db.DeleteBank(s.db, swiftCode)
+	if errors.Is(err, sql.ErrNoRows) {
+		WriteHTTPError(w, http.StatusNotFound)
+		return nil
+	} else if err != nil {
+		return err
+	}
+
+	res := MessageRes{Message: fmt.Sprintf("Deleted bank with SWIFT code %s", swiftCode)}
+	err = WriteJSON(w, http.StatusOK, res)
 	if err != nil {
 		return err
 	}

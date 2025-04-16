@@ -72,3 +72,16 @@ func InsertBanks(db *sqlx.DB, banks []Bank) error {
 
 	return nil
 }
+
+func DeleteBank(db *sqlx.DB, swiftCode string) error {
+	// Automatically sets all branches' hq_swift_code to NULL (defined in schema)
+	row := db.QueryRow("DELETE FROM bank WHERE swift_code=$1 RETURNING swift_code;", swiftCode)
+
+	var returnedCode string
+	err := row.Scan(&returnedCode)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

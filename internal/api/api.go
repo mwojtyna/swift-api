@@ -76,6 +76,7 @@ func (s *APIServer) Run() {
 	routerV1.HandleFunc("GET /swift-codes/{swiftCode}", s.handleError(s.handleGetSwiftCodeV1))
 	routerV1.HandleFunc("GET /swift-codes/country/{countryISO2code}", s.handleError(s.handleGetSwiftCodesForCountryV1))
 	routerV1.HandleFunc("POST /swift-codes", s.handleError(s.handleAddSwiftCodeV1))
+	routerV1.HandleFunc("DELETE /swift-codes/{swiftCode}", s.handleError(s.handleDeleteSwiftCodeV1))
 
 	rootRouter := http.NewServeMux()
 	rootRouter.Handle("/v1/", http.StripPrefix("/v1", routerV1))

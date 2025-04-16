@@ -10,7 +10,7 @@ func Map[T, V any](slice []T, fn func(T) V) []V {
 
 const hqPartLen = 8
 
-// Returns whether the bank is the headquarters and if not, also returns the bank's headquarters code assuming they exist
+// Returns whether the bank is the headquarters, if not - returns the bank's headquarters code assuming they exist
 func IsSwiftCodeHq(code string) (bool, string) {
 	if code[hqPartLen:] == "XXX" {
 		return true, ""
