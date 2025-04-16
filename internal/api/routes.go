@@ -123,6 +123,13 @@ func (s *APIServer) handleAddSwiftCodeV1(w http.ResponseWriter, r *http.Request)
 		return nil
 	}
 
+	err = ValidateStruct(req, s.validate)
+	if err != nil {
+		res := MessageRes{Message: err.Error()}
+		WriteJSON(w, http.StatusUnprocessableEntity, res)
+		return nil
+	}
+
 	// HQ handling
 	isHq, hqCode := utils.IsSwiftCodeHq(req.SwiftCode)
 	if (isHq && !req.IsHeadquarter) || (!isHq && req.IsHeadquarter) {

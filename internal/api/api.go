@@ -2,12 +2,32 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
+	"reflect"
+	"strings"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 )
+
+func ValidateStruct[T any](t T, validate *validator.Validate) error {
+	err := validate.Struct(t)
+	var ve validator.ValidationErrors
+
+	if err != nil && errors.As(err, &ve) {
+		msg := "Format checks failed for fields:\n"
+		for _, fe := range ve {
+			msg += fmt.Sprintf("'%s': %s\n", fe.Field(), fe.Tag())
+		}
+
+		return errors.New(msg)
+	}
+
+	return nil
+}
 
 func ReadJSON[T any](w http.ResponseWriter, r *http.Request, t *T) error {
 	if r.Header.Get("Content-Type") != "application/json" {
@@ -22,7 +42,7 @@ func ReadJSON[T any](w http.ResponseWriter, r *http.Request, t *T) error {
 	return nil
 }
 
-func WriteJSON(w http.ResponseWriter, status int, v any) error {
+func WriteJSON[T any](w http.ResponseWriter, status int, v T) error {
 	w.WriteHeader(status)
 	w.Header().Set("Content-Type", "application/json")
 	return json.NewEncoder(w).Encode(v)
@@ -33,10 +53,21 @@ func WriteHTTPError(w http.ResponseWriter, status int) {
 }
 
 func NewAPIServer(address string, db *sqlx.DB, logger *log.Logger) *APIServer {
+	validate := validator.New(validator.WithRequiredStructEnabled())
+	// Return json name instead of struct name
+	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+		if name == "-" {
+			return ""
+		}
+		return name
+	})
+
 	return &APIServer{
-		address: address,
-		db:      db,
-		logger:  logger,
+		address:  address,
+		db:       db,
+		logger:   logger,
+		validate: validate,
 	}
 }
 

@@ -3,13 +3,15 @@ package api
 import (
 	"log"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 )
 
 type APIServer struct {
-	address string
-	db      *sqlx.DB
-	logger  *log.Logger
+	address  string
+	db       *sqlx.DB
+	logger   *log.Logger
+	validate *validator.Validate
 }
 
 type MessageRes struct {
@@ -58,10 +60,10 @@ type GetSwiftCodesForCountrySwiftCode struct {
 }
 
 type AddSwiftCodeReq struct {
-	Address       string `json:"address"`
-	BankName      string `json:"bankName"`
-	CountryISO2   string `json:"countryISO2"`
-	CountryName   string `json:"countryName"`
-	IsHeadquarter bool   `json:"isHeadquarter"`
-	SwiftCode     string `json:"swiftCode"`
+	Address       string `json:"address" validate:"required"`
+	BankName      string `json:"bankName" validate:"required"`
+	CountryISO2   string `json:"countryISO2" validate:"required,uppercase,country_code"`
+	CountryName   string `json:"countryName" validate:"required,uppercase"`
+	IsHeadquarter bool   `json:"isHeadquarter" validate:"required"`
+	SwiftCode     string `json:"swiftCode" validate:"required,len=11"`
 }
