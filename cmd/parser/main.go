@@ -82,7 +82,7 @@ func parseCSV(filename string) ([]db.Bank, error) {
 		// Skip index 2 (CODE TYPE) - "Redundant columns in the file may be omitted."
 		bankName := record[3]
 		bankAddress := record[4]
-		// Skip index 5 (TOWN NAME) - "Redundant columns in the file may be omitted."
+		townName := record[5] // Read town name in case the address is empty
 		countryName := strings.ToUpper(record[6])
 		// Skip index 7 (TIME ZONE) - "Redundant columns in the file may be omitted."
 
@@ -95,11 +95,18 @@ func parseCSV(filename string) ([]db.Bank, error) {
 			continue
 		}
 
+		// EDGE CASE: Set address to "town_name" if it is empty
+		var address string
+		if strings.TrimSpace(bankAddress) == "" {
+			address = townName
+		} else {
+			address = bankAddress
+		}
 		bank := db.Bank{
 			SwiftCode:       swiftCode,
 			HqSwiftCode:     sql.NullString{},
 			BankName:        bankName,
-			Address:         bankAddress,
+			Address:         address,
 			CountryISO2Code: countryCode,
 			CountryName:     countryName,
 		}
