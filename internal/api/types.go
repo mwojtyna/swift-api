@@ -38,3 +38,17 @@ type SwiftCodeDetailsBranchResponse struct {
 	IsHeadquarter bool   `json:"isHeadquarter"`
 	SwiftCode     string `json:"swiftCode"`
 }
+
+type SwiftCodesForCountryResponse struct {
+	CountryISO2 string                          `json:"countryISO2"`
+	CountryName string                          `json:"countryName"`
+	SwiftCodes  []SwiftCodesForCountrySwiftCode `json:"swiftCodes"`
+}
+
+type SwiftCodesForCountrySwiftCode struct {
+	Address       string `json:"address"`
+	BankName      string `json:"bankName"`
+	CountryISO2   string `json:"countryISO2"`
+	IsHeadquarter bool   `json:"isHeadquarter"`
+	SwiftCode     string `json:"swiftCode"`
+}

@@ -137,7 +137,6 @@ func parseCSV(filename string) ([]db.Bank, error) {
 
 		_, ok := hqBankCodes[b.HqSwiftCode.String]
 		if !ok {
-			// logger.Printf("Removed hq code %s from bank %+v", b.HqSwiftCode.String, b)
 			b.HqSwiftCode = sql.NullString{}
 		}
 	}

@@ -29,6 +29,17 @@ func GetBankBranches(db *sqlx.DB, swiftCode string) ([]Bank, error) {
 	return branches, nil
 }
 
+func GetBanksInCountry(db *sqlx.DB, countryCode string) ([]Bank, error) {
+	var banks []Bank
+
+	err := db.Select(&banks, "SELECT * FROM bank WHERE country_iso2_code=$1", countryCode)
+	if err != nil {
+		return nil, err
+	}
+
+	return banks, nil
+}
+
 func InsertBanks(db *sqlx.DB, banks []Bank) error {
 	_, err := db.NamedExec(`INSERT INTO bank (swift_code, hq_swift_code, bank_name, address, country_iso2_code, country_name) 
 		VALUES (:swift_code, :hq_swift_code, :bank_name, :address, :country_iso2_code, :country_name);`, banks)

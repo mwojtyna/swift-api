@@ -12,24 +12,24 @@ import (
 func (s *APIServer) getSwiftCodeDetailsV1(w http.ResponseWriter, r *http.Request) {
 	swiftCode := r.PathValue("swiftCode")
 	if swiftCode == "" {
-		WriteError(w, 400)
+		WriteError(w, http.StatusBadRequest)
 		return
 	}
 
 	bank, err := db.GetBank(s.db, swiftCode)
 	if errors.Is(err, sql.ErrNoRows) {
-		WriteError(w, 404)
+		WriteError(w, http.StatusNotFound)
 		return
 	}
 	if err != nil {
-		WriteError(w, 500)
+		WriteError(w, http.StatusInternalServerError)
 		return
 	}
 
-	if bank.IsHq() {
+	if bank.IsHQ() {
 		branchesRaw, err := db.GetBankBranches(s.db, swiftCode)
 		if err != nil {
-			WriteError(w, 500)
+			WriteError(w, http.StatusInternalServerError)
 			return
 		}
 
@@ -38,7 +38,7 @@ func (s *APIServer) getSwiftCodeDetailsV1(w http.ResponseWriter, r *http.Request
 				Address:       b.Address,
 				BankName:      b.BankName,
 				CountryISO2:   b.CountryISO2Code,
-				IsHeadquarter: b.IsHq(),
+				IsHeadquarter: b.IsHQ(),
 				SwiftCode:     b.SwiftCode,
 			}
 		})
@@ -48,14 +48,14 @@ func (s *APIServer) getSwiftCodeDetailsV1(w http.ResponseWriter, r *http.Request
 			BankName:      bank.BankName,
 			CountryISO2:   bank.CountryISO2Code,
 			CountryName:   bank.CountryName,
-			IsHeadquarter: bank.IsHq(),
+			IsHeadquarter: bank.IsHQ(),
 			SwiftCode:     bank.SwiftCode,
 			Branches:      branches,
 		}
 
-		err = WriteJSON(w, 200, res)
+		err = WriteJSON(w, http.StatusOK, res)
 		if err != nil {
-			WriteError(w, 500)
+			WriteError(w, http.StatusInternalServerError)
 			return
 		}
 	} else {
@@ -64,14 +64,50 @@ func (s *APIServer) getSwiftCodeDetailsV1(w http.ResponseWriter, r *http.Request
 			BankName:      bank.BankName,
 			CountryISO2:   bank.CountryISO2Code,
 			CountryName:   bank.CountryName,
-			IsHeadquarter: bank.IsHq(),
+			IsHeadquarter: bank.IsHQ(),
 			SwiftCode:     bank.SwiftCode,
 		}
 
-		err = WriteJSON(w, 200, res)
+		err = WriteJSON(w, http.StatusOK, res)
 		if err != nil {
-			WriteError(w, 500)
+			WriteError(w, http.StatusInternalServerError)
 			return
 		}
+	}
+}
+
+func (s *APIServer) getSwiftCodesForCountryV1(w http.ResponseWriter, r *http.Request) {
+	countryCode := r.PathValue("countryISO2code")
+
+	banks, err := db.GetBanksInCountry(s.db, countryCode)
+	if len(banks) == 0 {
+		WriteError(w, http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		WriteError(w, http.StatusInternalServerError)
+		return
+	}
+
+	codes := utils.Map(banks, func(b db.Bank) SwiftCodesForCountrySwiftCode {
+		return SwiftCodesForCountrySwiftCode{
+			Address:       b.Address,
+			BankName:      b.BankName,
+			CountryISO2:   b.CountryISO2Code,
+			IsHeadquarter: b.IsHQ(),
+			SwiftCode:     b.SwiftCode,
+		}
+	})
+	res := SwiftCodesForCountryResponse{
+		// Since all banks are from the same country, just get the country data from any bank so we don't have to query the DB
+		CountryISO2: banks[0].CountryISO2Code,
+		CountryName: banks[0].CountryName,
+		SwiftCodes:  codes,
+	}
+
+	err = WriteJSON(w, http.StatusOK, res)
+	if err != nil {
+		WriteError(w, http.StatusInternalServerError)
+		return
 	}
 }
