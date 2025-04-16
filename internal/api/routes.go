@@ -118,12 +118,19 @@ func (s *APIServer) handleAddSwiftCodeV1(w http.ResponseWriter, r *http.Request)
 
 	err := ReadJSON(w, r, &req)
 	if err != nil {
-		WriteJSON(w, http.StatusBadRequest, err.Error())
+		res := MessageRes{Message: err.Error()}
+		WriteJSON(w, http.StatusBadRequest, res)
 		return nil
 	}
 
 	// HQ handling
 	isHq, hqCode := utils.IsSwiftCodeHq(req.SwiftCode)
+	if (isHq && !req.IsHeadquarter) || (!isHq && req.IsHeadquarter) {
+		res := MessageRes{Message: "isHeadquarter disagrees with swiftCode"}
+		WriteJSON(w, http.StatusUnprocessableEntity, res)
+		return nil
+	}
+
 	dbHqCode := sql.NullString{}
 	if !isHq {
 		exists, err := db.CheckBankHqExists(s.db, hqCode)
