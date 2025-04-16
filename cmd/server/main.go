@@ -10,7 +10,7 @@ import (
 	"github.com/mwojtyna/swift-api/internal/db"
 )
 
-var logger = log.New(os.Stderr, "[API] ", log.LstdFlags|log.Lshortfile)
+var logger = log.New(os.Stderr, "[API] ", log.Ldate|log.Ltime)
 
 func main() {
 	env, err := config.LoadEnv()

@@ -34,5 +34,5 @@ func (s *APIServer) Run() {
 	rootRouter := http.NewServeMux()
 	rootRouter.Handle("/v1/", http.StripPrefix("/v1", routerV1))
 
-	http.ListenAndServe(s.address, rootRouter)
+	http.ListenAndServe(s.address, LoggingMiddleware(rootRouter, s.logger))
 }
