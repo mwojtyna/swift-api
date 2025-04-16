@@ -21,19 +21,19 @@ func main() {
 
 	env, err := config.LoadEnv()
 	if err != nil {
-		logger.Fatalf(`Error reading envs: "%s"`, err.Error())
+		logger.Fatalf(`ERROR reading envs: "%s"`, err.Error())
 	}
 	logger.Println("Read envs")
 
 	pg, err := db.Connect(env.DB_USER, env.DB_PASS, env.DB_NAME)
 	if err != nil {
-		logger.Fatalf(`Error connecting to db: "%s"`, err.Error())
+		logger.Fatalf(`ERROR connecting to db: "%s"`, err.Error())
 	}
 	logger.Println("Connected to db")
 
 	empty, err := db.IsEmpty(pg)
 	if err != nil {
-		logger.Fatalf(`Error checking if DB is empty: "%s"`, err.Error())
+		logger.Fatalf(`ERROR checking if DB is empty: "%s"`, err.Error())
 	}
 	if !empty {
 		logger.Fatalln("Error: DB isn't empty")
@@ -41,13 +41,13 @@ func main() {
 
 	banks, err := parseCSV(csv_name)
 	if err != nil {
-		logger.Fatalf(`Error parsing file and inserting data to db '%s': "%s"`, csv_name, err.Error())
+		logger.Fatalf(`ERROR parsing file and inserting data to db '%s': "%s"`, csv_name, err.Error())
 	}
 	logger.Printf("Parsed %d banks", len(banks))
 
 	err = db.InsertBanks(pg, banks)
 	if err != nil {
-		logger.Fatalf(`Error inserting banks: "%s"`, err.Error())
+		logger.Fatalf(`ERROR inserting banks: "%s"`, err.Error())
 	}
 	logger.Println("Inserted banks")
 

@@ -17,6 +17,7 @@ func GetBank(db *sqlx.DB, swiftCode string) (Bank, error) {
 
 func GetBankBranches(db *sqlx.DB, swiftCode string) ([]Bank, error) {
 	var branches []Bank
+
 	err := db.Select(&branches, `
 		SELECT b2.* FROM bank AS b1 
 		JOIN bank AS b2 ON b2.hq_swift_code=b1.swift_code
@@ -32,7 +33,7 @@ func GetBankBranches(db *sqlx.DB, swiftCode string) ([]Bank, error) {
 func GetBanksInCountry(db *sqlx.DB, countryCode string) ([]Bank, error) {
 	var banks []Bank
 
-	err := db.Select(&banks, "SELECT * FROM bank WHERE country_iso2_code=$1", countryCode)
+	err := db.Select(&banks, "SELECT * FROM bank WHERE country_iso2_code=$1;", countryCode)
 	if err != nil {
 		return nil, err
 	}

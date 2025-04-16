@@ -9,28 +9,28 @@ import (
 	"github.com/mwojtyna/swift-api/internal/utils"
 )
 
-func (s *APIServer) getSwiftCodeDetailsV1(w http.ResponseWriter, r *http.Request) {
+func (s *APIServer) getSwiftCodeDetailsV1(w http.ResponseWriter, r *http.Request) error {
 	swiftCode := r.PathValue("swiftCode")
 	if swiftCode == "" {
 		WriteError(w, http.StatusBadRequest)
-		return
+		return nil
 	}
 
 	bank, err := db.GetBank(s.db, swiftCode)
 	if errors.Is(err, sql.ErrNoRows) {
 		WriteError(w, http.StatusNotFound)
-		return
+		return nil
 	}
 	if err != nil {
 		WriteError(w, http.StatusInternalServerError)
-		return
+		return err
 	}
 
 	if bank.IsHQ() {
 		branchesRaw, err := db.GetBankBranches(s.db, swiftCode)
 		if err != nil {
 			WriteError(w, http.StatusInternalServerError)
-			return
+			return err
 		}
 
 		branches := utils.Map(branchesRaw, func(b db.Bank) SwiftCodeDetailsHqBranch {
@@ -56,7 +56,7 @@ func (s *APIServer) getSwiftCodeDetailsV1(w http.ResponseWriter, r *http.Request
 		err = WriteJSON(w, http.StatusOK, res)
 		if err != nil {
 			WriteError(w, http.StatusInternalServerError)
-			return
+			return err
 		}
 	} else {
 		res := SwiftCodeDetailsBranchResponse{
@@ -71,22 +71,24 @@ func (s *APIServer) getSwiftCodeDetailsV1(w http.ResponseWriter, r *http.Request
 		err = WriteJSON(w, http.StatusOK, res)
 		if err != nil {
 			WriteError(w, http.StatusInternalServerError)
-			return
+			return err
 		}
 	}
+
+	return nil
 }
 
-func (s *APIServer) getSwiftCodesForCountryV1(w http.ResponseWriter, r *http.Request) {
+func (s *APIServer) getSwiftCodesForCountryV1(w http.ResponseWriter, r *http.Request) error {
 	countryCode := r.PathValue("countryISO2code")
 
 	banks, err := db.GetBanksInCountry(s.db, countryCode)
 	if len(banks) == 0 {
 		WriteError(w, http.StatusNotFound)
-		return
+		return nil
 	}
 	if err != nil {
 		WriteError(w, http.StatusInternalServerError)
-		return
+		return err
 	}
 
 	codes := utils.Map(banks, func(b db.Bank) SwiftCodesForCountrySwiftCode {
@@ -108,6 +110,8 @@ func (s *APIServer) getSwiftCodesForCountryV1(w http.ResponseWriter, r *http.Req
 	err = WriteJSON(w, http.StatusOK, res)
 	if err != nil {
 		WriteError(w, http.StatusInternalServerError)
-		return
+		return err
 	}
+
+	return nil
 }

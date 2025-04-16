@@ -28,11 +28,20 @@ func NewAPIServer(address string, db *sqlx.DB, logger *log.Logger) *APIServer {
 
 func (s *APIServer) Run() {
 	routerV1 := http.NewServeMux()
-	routerV1.HandleFunc("GET /swift-codes/{swiftCode}", s.getSwiftCodeDetailsV1)
-	routerV1.HandleFunc("GET /swift-codes/country/{countryISO2code}", s.getSwiftCodesForCountryV1)
+	routerV1.HandleFunc("GET /swift-codes/{swiftCode}", s.handleError(s.getSwiftCodeDetailsV1))
+	routerV1.HandleFunc("GET /swift-codes/country/{countryISO2code}", s.handleError(s.getSwiftCodesForCountryV1))
 
 	rootRouter := http.NewServeMux()
 	rootRouter.Handle("/v1/", http.StripPrefix("/v1", routerV1))
 
 	http.ListenAndServe(s.address, LoggingMiddleware(rootRouter, s.logger))
+}
+
+func (s *APIServer) handleError(f func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		err := f(w, r)
+		if err != nil {
+			s.logger.Printf(`ERROR on %s %s: "%s"`, r.Method, r.URL.Path, err)
+		}
+	})
 }
