@@ -14,16 +14,16 @@ import (
 
 // NOTE: Return error in function only if status is 500!
 
-func (s *APIServer) handleGetSwiftCodeV1(w http.ResponseWriter, r *http.Request) error {
+func (s *ApiServer) handleGetSwiftCodeV1(w http.ResponseWriter, r *http.Request) error {
 	swiftCode := r.PathValue("swiftCode")
 	if swiftCode == "" {
-		WriteHTTPError(w, http.StatusBadRequest)
+		WriteHttpError(w, http.StatusBadRequest)
 		return nil
 	}
 
 	bank, err := db.GetBank(s.db, swiftCode)
 	if errors.Is(err, sql.ErrNoRows) {
-		WriteHTTPError(w, http.StatusNotFound)
+		WriteHttpError(w, http.StatusNotFound)
 		return nil
 	}
 	if err != nil {
@@ -56,7 +56,7 @@ func (s *APIServer) handleGetSwiftCodeV1(w http.ResponseWriter, r *http.Request)
 			Branches:      branches,
 		}
 
-		err = WriteJSON(w, http.StatusOK, res)
+		err = WriteJson(w, http.StatusOK, res)
 		if err != nil {
 			return err
 		}
@@ -70,7 +70,7 @@ func (s *APIServer) handleGetSwiftCodeV1(w http.ResponseWriter, r *http.Request)
 			SwiftCode:     bank.SwiftCode,
 		}
 
-		err = WriteJSON(w, http.StatusOK, res)
+		err = WriteJson(w, http.StatusOK, res)
 		if err != nil {
 			return err
 		}
@@ -79,12 +79,12 @@ func (s *APIServer) handleGetSwiftCodeV1(w http.ResponseWriter, r *http.Request)
 	return nil
 }
 
-func (s *APIServer) handleGetSwiftCodesForCountryV1(w http.ResponseWriter, r *http.Request) error {
+func (s *ApiServer) handleGetSwiftCodesForCountryV1(w http.ResponseWriter, r *http.Request) error {
 	countryCode := r.PathValue("countryISO2code")
 
 	banks, err := db.GetBanksInCountry(s.db, countryCode)
 	if len(banks) == 0 {
-		WriteHTTPError(w, http.StatusNotFound)
+		WriteHttpError(w, http.StatusNotFound)
 		return nil
 	}
 	if err != nil {
@@ -107,7 +107,7 @@ func (s *APIServer) handleGetSwiftCodesForCountryV1(w http.ResponseWriter, r *ht
 		SwiftCodes:  codes,
 	}
 
-	err = WriteJSON(w, http.StatusOK, res)
+	err = WriteJson(w, http.StatusOK, res)
 	if err != nil {
 		return err
 	}
@@ -115,14 +115,14 @@ func (s *APIServer) handleGetSwiftCodesForCountryV1(w http.ResponseWriter, r *ht
 	return nil
 }
 
-func (s *APIServer) handleAddSwiftCodeV1(w http.ResponseWriter, r *http.Request) error {
+func (s *ApiServer) handleAddSwiftCodeV1(w http.ResponseWriter, r *http.Request) error {
 	var req AddSwiftCodeReq
 
 	// 400
-	err := ReadJSON(w, r, &req)
+	err := ReadJson(w, r, &req)
 	if err != nil {
 		res := MessageRes{Message: err.Error()}
-		WriteJSON(w, http.StatusBadRequest, res)
+		WriteJson(w, http.StatusBadRequest, res)
 		return nil
 	}
 
@@ -130,7 +130,7 @@ func (s *APIServer) handleAddSwiftCodeV1(w http.ResponseWriter, r *http.Request)
 	err = ValidateStruct(req, s.validate)
 	if err != nil {
 		res := MessageRes{Message: err.Error()}
-		WriteJSON(w, http.StatusUnprocessableEntity, res)
+		WriteJson(w, http.StatusUnprocessableEntity, res)
 		return nil
 	}
 
@@ -138,7 +138,7 @@ func (s *APIServer) handleAddSwiftCodeV1(w http.ResponseWriter, r *http.Request)
 	isHq, hqCode := parser.IsSwiftCodeHq(req.SwiftCode)
 	if (isHq && !req.IsHeadquarter) || (!isHq && req.IsHeadquarter) {
 		res := MessageRes{Message: "isHeadquarter disagrees with swiftCode"}
-		WriteJSON(w, http.StatusUnprocessableEntity, res)
+		WriteJson(w, http.StatusUnprocessableEntity, res)
 		return nil
 	}
 
@@ -168,14 +168,14 @@ func (s *APIServer) handleAddSwiftCodeV1(w http.ResponseWriter, r *http.Request)
 
 	pgErr, isPgErr := db.InsertBank(s.db, bank).(*pq.Error)
 	if isPgErr && pgErr.Code == db.UniqueViolationErrorCode {
-		WriteHTTPError(w, http.StatusConflict)
+		WriteHttpError(w, http.StatusConflict)
 		return nil
 	} else if pgErr != nil {
 		return pgErr
 	}
 
 	res := MessageRes{Message: fmt.Sprintf("Added bank with SWIFT code %s", bank.SwiftCode)}
-	err = WriteJSON(w, http.StatusCreated, res)
+	err = WriteJson(w, http.StatusCreated, res)
 	if err != nil {
 		return err
 	}
@@ -183,23 +183,23 @@ func (s *APIServer) handleAddSwiftCodeV1(w http.ResponseWriter, r *http.Request)
 	return nil
 }
 
-func (s *APIServer) handleDeleteSwiftCodeV1(w http.ResponseWriter, r *http.Request) error {
+func (s *ApiServer) handleDeleteSwiftCodeV1(w http.ResponseWriter, r *http.Request) error {
 	swiftCode := r.PathValue("swiftCode")
 	if swiftCode == "" {
-		WriteHTTPError(w, http.StatusBadRequest)
+		WriteHttpError(w, http.StatusBadRequest)
 		return nil
 	}
 
 	err := db.DeleteBank(s.db, swiftCode)
 	if errors.Is(err, sql.ErrNoRows) {
-		WriteHTTPError(w, http.StatusNotFound)
+		WriteHttpError(w, http.StatusNotFound)
 		return nil
 	} else if err != nil {
 		return err
 	}
 
 	res := MessageRes{Message: fmt.Sprintf("Deleted bank with SWIFT code %s", swiftCode)}
-	err = WriteJSON(w, http.StatusOK, res)
+	err = WriteJson(w, http.StatusOK, res)
 	if err != nil {
 		return err
 	}

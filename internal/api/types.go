@@ -7,7 +7,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type APIServer struct {
+type ApiServer struct {
 	address  string
 	db       *sqlx.DB
 	logger   *log.Logger

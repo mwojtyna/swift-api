@@ -29,7 +29,7 @@ func ValidateStruct[T any](t T, validate *validator.Validate) error {
 	return nil
 }
 
-func ReadJSON[T any](w http.ResponseWriter, r *http.Request, t *T) error {
+func ReadJson[T any](w http.ResponseWriter, r *http.Request, t *T) error {
 	if r.Header.Get("Content-Type") != "application/json" {
 		return fmt.Errorf(`"Content-Type" not "application/json"`)
 	}
@@ -42,17 +42,17 @@ func ReadJSON[T any](w http.ResponseWriter, r *http.Request, t *T) error {
 	return nil
 }
 
-func WriteJSON[T any](w http.ResponseWriter, status int, v T) error {
+func WriteJson[T any](w http.ResponseWriter, status int, v T) error {
 	w.WriteHeader(status)
 	w.Header().Set("Content-Type", "application/json")
 	return json.NewEncoder(w).Encode(v)
 }
 
-func WriteHTTPError(w http.ResponseWriter, status int) {
+func WriteHttpError(w http.ResponseWriter, status int) {
 	http.Error(w, "", status)
 }
 
-func NewAPIServer(address string, db *sqlx.DB, logger *log.Logger) *APIServer {
+func NewApiServer(address string, db *sqlx.DB, logger *log.Logger) *ApiServer {
 	validate := validator.New(validator.WithRequiredStructEnabled())
 	// Return json name instead of struct name
 	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
@@ -63,7 +63,7 @@ func NewAPIServer(address string, db *sqlx.DB, logger *log.Logger) *APIServer {
 		return name
 	})
 
-	return &APIServer{
+	return &ApiServer{
 		address:  address,
 		db:       db,
 		logger:   logger,
@@ -71,7 +71,7 @@ func NewAPIServer(address string, db *sqlx.DB, logger *log.Logger) *APIServer {
 	}
 }
 
-func (s *APIServer) Run() {
+func (s *ApiServer) Run() {
 	routerV1 := http.NewServeMux()
 	routerV1.HandleFunc("GET /swift-codes/{swiftCode}", s.handleError(s.handleGetSwiftCodeV1))
 	routerV1.HandleFunc("GET /swift-codes/country/{countryISO2code}", s.handleError(s.handleGetSwiftCodesForCountryV1))
@@ -84,11 +84,11 @@ func (s *APIServer) Run() {
 	http.ListenAndServe(s.address, LoggingMiddleware(rootRouter, s.logger))
 }
 
-func (s *APIServer) handleError(f func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
+func (s *ApiServer) handleError(f func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		err := f(w, r)
 		if err != nil {
-			WriteHTTPError(w, http.StatusInternalServerError)
+			WriteHttpError(w, http.StatusInternalServerError)
 			s.logger.Printf(`ERROR on %s %s: "%s"`, r.Method, r.URL.Path, err)
 		}
 	})

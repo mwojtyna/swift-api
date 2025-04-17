@@ -26,7 +26,7 @@ func main() {
 	logger.Println("Connected to db")
 
 	addr := fmt.Sprintf(":%s", env.API_PORT)
-	server := api.NewAPIServer(addr, pg, logger)
+	server := api.NewApiServer(addr, pg, logger)
 
 	logger.Printf("Server running on %s", addr)
 	server.Run()
