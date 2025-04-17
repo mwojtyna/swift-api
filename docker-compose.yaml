@@ -1,8 +1,9 @@
 name: swift-api
 
 services:
+  # If you change db config make sure to update testcontainers.go
   db:
-    image: postgres:15
+    image: postgres:17
     container_name: db
     environment:
       - POSTGRES_USER=${DB_USER}

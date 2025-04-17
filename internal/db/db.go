@@ -7,11 +7,14 @@ import (
 	"github.com/lib/pq"
 )
 
-const UniqueViolationErrorCode = pq.ErrorCode("23505")
+const (
+	ForeignKeyViolationErrorCode = pq.ErrorCode("23503")
+	UniqueViolationErrorCode     = pq.ErrorCode("23505")
+)
 
-func Connect(user string, password string, dbName string) (*sqlx.DB, error) {
+func Connect(user string, password string, dbName string, dbPort string) (*sqlx.DB, error) {
 	// Disable SSL, not needed for this project
-	connStr := fmt.Sprintf("postgres://%s:%s@localhost/%s?sslmode=disable", user, password, dbName)
+	connStr := fmt.Sprintf("postgres://%s:%s@localhost:%s/%s?sslmode=disable", user, password, dbPort, dbName)
 
 	db, err := sqlx.Open("postgres", connStr)
 	if err != nil {

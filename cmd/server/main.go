@@ -19,7 +19,7 @@ func main() {
 	}
 	logger.Println("Read envs")
 
-	pg, err := db.Connect(env.DB_USER, env.DB_PASS, env.DB_NAME)
+	pg, err := db.Connect(env.DB_USER, env.DB_PASS, env.DB_NAME, env.DB_PORT)
 	if err != nil {
 		logger.Fatalf(`ERROR connecting to db: "%s"`, err.Error())
 	}
