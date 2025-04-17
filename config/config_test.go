@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,19 +8,20 @@ import (
 )
 
 func TestLoadEnv(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
+		name    string
 		dbUser  string
 		dbPass  string
 		dbName  string
 		apiPort string
 		wantErr bool
 	}{
-		{"user", "password", "name", "1234", false},
-		{"user", "password", "", "1234", true}, // one of the variables wasn't set
+		{"correct", "user", "password", "name", "1234", false},
+		{"variable not set", "user", "password", "", "1234", true},
 	}
 
 	for _, tt := range tests {
-		t.Run(fmt.Sprint(tt), func(t *testing.T) {
+		t.Run(tt.name, func(t *testing.T) {
 			t.Setenv("DB_USER", tt.dbUser)
 			t.Setenv("DB_PASS", tt.dbPass)
 			t.Setenv("DB_NAME", tt.dbName)
