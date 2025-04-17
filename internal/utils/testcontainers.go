@@ -16,10 +16,9 @@ const pgImage = "postgres:17"
 const migrationsFolder = "migrations"
 
 type TestWithPostgresArgs struct {
-	Pc   *postgres.PostgresContainer
-	Port string
-	Env  *config.Env
-	Ctx  context.Context
+	Pc  *postgres.PostgresContainer
+	Env *config.Env
+	Ctx context.Context
 }
 
 func TestWithPostgres(f func(TestWithPostgresArgs)) {
@@ -42,7 +41,6 @@ func TestWithPostgres(f func(TestWithPostgresArgs)) {
 	pc, err := postgres.Run(ctx,
 		pgImage,
 		postgres.WithInitScripts(migrations...),
-		// postgres.WithConfigFile(filepath.Join("testdata", "my-postgres.conf")),
 		postgres.WithDatabase(env.DB_NAME),
 		postgres.WithUsername(env.DB_USER),
 		postgres.WithPassword(env.DB_PASS),
@@ -65,11 +63,11 @@ func TestWithPostgres(f func(TestWithPostgresArgs)) {
 	if err != nil {
 		log.Println("failed to get port")
 	}
+	env.DB_PORT = port.Port()
 
 	f(TestWithPostgresArgs{
-		Pc:   pc,
-		Port: port.Port(),
-		Env:  &env,
-		Ctx:  ctx,
+		Pc:  pc,
+		Env: &env,
+		Ctx: ctx,
 	})
 }

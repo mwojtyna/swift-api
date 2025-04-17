@@ -12,7 +12,7 @@ func TestConnect(t *testing.T) {
 	t.Parallel()
 	utils.TestWithPostgres(func(args utils.TestWithPostgresArgs) {
 		t.Run("successful connection with correct credentials", func(t *testing.T) {
-			db, err := Connect(args.Env.DB_USER, args.Env.DB_PASS, args.Env.DB_NAME, args.Port)
+			db, err := Connect(args.Env.DB_USER, args.Env.DB_PASS, args.Env.DB_NAME, args.Env.DB_PORT)
 			require.NoError(t, err)
 
 			t.Cleanup(func() {
@@ -31,7 +31,7 @@ func TestConnect(t *testing.T) {
 func TestIsEmpty(t *testing.T) {
 	t.Parallel()
 	utils.TestWithPostgres(func(args utils.TestWithPostgresArgs) {
-		db, err := Connect(args.Env.DB_USER, args.Env.DB_PASS, args.Env.DB_NAME, args.Port)
+		db, err := Connect(args.Env.DB_USER, args.Env.DB_PASS, args.Env.DB_NAME, args.Env.DB_PORT)
 		require.NoError(t, err)
 
 		t.Run("empty db returns true", func(t *testing.T) {

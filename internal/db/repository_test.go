@@ -15,7 +15,7 @@ func TestGetBank(t *testing.T) {
 	t.Parallel()
 
 	utils.TestWithPostgres(func(args utils.TestWithPostgresArgs) {
-		db, err := Connect(args.Env.DB_USER, args.Env.DB_PASS, args.Env.DB_NAME, args.Port)
+		db, err := Connect(args.Env.DB_USER, args.Env.DB_PASS, args.Env.DB_NAME, args.Env.DB_PORT)
 		require.NoError(t, err)
 		t.Cleanup(func() {
 			db.Close()
@@ -90,7 +90,7 @@ func TestGetBank(t *testing.T) {
 func TestGetBankBranches(t *testing.T) {
 	t.Parallel()
 	utils.TestWithPostgres(func(args utils.TestWithPostgresArgs) {
-		db, err := Connect(args.Env.DB_USER, args.Env.DB_PASS, args.Env.DB_NAME, args.Port)
+		db, err := Connect(args.Env.DB_USER, args.Env.DB_PASS, args.Env.DB_NAME, args.Env.DB_PORT)
 		require.NoError(t, err)
 		t.Cleanup(func() {
 			db.Close()
@@ -225,7 +225,7 @@ func TestGetBankBranches(t *testing.T) {
 func TestGetBanksInCountry(t *testing.T) {
 	t.Parallel()
 	utils.TestWithPostgres(func(args utils.TestWithPostgresArgs) {
-		db, err := Connect(args.Env.DB_USER, args.Env.DB_PASS, args.Env.DB_NAME, args.Port)
+		db, err := Connect(args.Env.DB_USER, args.Env.DB_PASS, args.Env.DB_NAME, args.Env.DB_PORT)
 		require.NoError(t, err)
 		t.Cleanup(func() {
 			db.Close()
@@ -314,7 +314,7 @@ func TestGetBanksInCountry(t *testing.T) {
 func TestCheckBankHqExists(t *testing.T) {
 	t.Parallel()
 	utils.TestWithPostgres(func(args utils.TestWithPostgresArgs) {
-		db, err := Connect(args.Env.DB_USER, args.Env.DB_PASS, args.Env.DB_NAME, args.Port)
+		db, err := Connect(args.Env.DB_USER, args.Env.DB_PASS, args.Env.DB_NAME, args.Env.DB_PORT)
 		require.NoError(t, err)
 		t.Cleanup(func() {
 			db.Close()
@@ -383,7 +383,7 @@ func TestCheckBankHqExists(t *testing.T) {
 func TestInsertBanks(t *testing.T) {
 	t.Parallel()
 	utils.TestWithPostgres(func(args utils.TestWithPostgresArgs) {
-		db, err := Connect(args.Env.DB_USER, args.Env.DB_PASS, args.Env.DB_NAME, args.Port)
+		db, err := Connect(args.Env.DB_USER, args.Env.DB_PASS, args.Env.DB_NAME, args.Env.DB_PORT)
 		require.NoError(t, err)
 		t.Cleanup(func() {
 			db.Close()
@@ -482,7 +482,7 @@ func TestInsertBanks(t *testing.T) {
 func TestInsertBank(t *testing.T) {
 	t.Parallel()
 	utils.TestWithPostgres(func(args utils.TestWithPostgresArgs) {
-		db, err := Connect(args.Env.DB_USER, args.Env.DB_PASS, args.Env.DB_NAME, args.Port)
+		db, err := Connect(args.Env.DB_USER, args.Env.DB_PASS, args.Env.DB_NAME, args.Env.DB_PORT)
 		require.NoError(t, err)
 		t.Cleanup(func() {
 			db.Close()
@@ -594,7 +594,7 @@ func TestInsertBank(t *testing.T) {
 func TestDeleteBank(t *testing.T) {
 	t.Parallel()
 	utils.TestWithPostgres(func(args utils.TestWithPostgresArgs) {
-		db, err := Connect(args.Env.DB_USER, args.Env.DB_PASS, args.Env.DB_NAME, args.Port)
+		db, err := Connect(args.Env.DB_USER, args.Env.DB_PASS, args.Env.DB_NAME, args.Env.DB_PORT)
 		require.NoError(t, err)
 		t.Cleanup(func() {
 			db.Close()
