@@ -7,15 +7,3 @@ func Map[T, V any](slice []T, fn func(T) V) []V {
 	}
 	return result
 }
-
-const hqPartLen = 8
-
-// Returns whether the bank is the headquarters, if not - returns the bank's headquarters code assuming they exist.
-// Assumes the given swift code is valid.
-func IsSwiftCodeHq(code string) (bool, string) {
-	if code[hqPartLen:] == "XXX" {
-		return true, ""
-	} else {
-		return false, code[:hqPartLen] + "XXX"
-	}
-}

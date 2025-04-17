@@ -8,6 +8,7 @@ import (
 
 	"github.com/lib/pq"
 	"github.com/mwojtyna/swift-api/internal/db"
+	"github.com/mwojtyna/swift-api/internal/parser"
 	"github.com/mwojtyna/swift-api/internal/utils"
 )
 
@@ -134,7 +135,7 @@ func (s *APIServer) handleAddSwiftCodeV1(w http.ResponseWriter, r *http.Request)
 	}
 
 	// HQ handling
-	isHq, hqCode := utils.IsSwiftCodeHq(req.SwiftCode)
+	isHq, hqCode := parser.IsSwiftCodeHq(req.SwiftCode)
 	if (isHq && !req.IsHeadquarter) || (!isHq && req.IsHeadquarter) {
 		res := MessageRes{Message: "isHeadquarter disagrees with swiftCode"}
 		WriteJSON(w, http.StatusUnprocessableEntity, res)

@@ -5,18 +5,19 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestLoadEnv(t *testing.T) {
 	var tests = []struct {
-		dbUser        string
-		dbPass        string
-		dbName        string
-		apiPort       string
-		errorExpected bool
+		dbUser  string
+		dbPass  string
+		dbName  string
+		apiPort string
+		wantErr bool
 	}{
 		{"user", "password", "name", "1234", false},
-		{"user", "password", "", "1234", true},
+		{"user", "password", "", "1234", true}, // one of the variables wasn't set
 	}
 
 	for _, tt := range tests {
@@ -26,18 +27,15 @@ func TestLoadEnv(t *testing.T) {
 			t.Setenv("DB_NAME", tt.dbName)
 			t.Setenv("API_PORT", tt.apiPort)
 
-			env, err := LoadEnv()
-			if tt.errorExpected {
+			got, err := LoadEnv()
+			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
-				if !assert.NoError(t, err) {
-					t.FailNow()
-				}
-
-				assert.Equal(t, tt.dbUser, env.DB_USER)
-				assert.Equal(t, tt.dbPass, env.DB_PASS)
-				assert.Equal(t, tt.dbName, env.DB_NAME)
-				assert.Equal(t, tt.apiPort, env.API_PORT)
+				require.NoError(t, err)
+				assert.Equal(t, tt.dbUser, got.DB_USER)
+				assert.Equal(t, tt.dbPass, got.DB_PASS)
+				assert.Equal(t, tt.dbName, got.DB_NAME)
+				assert.Equal(t, tt.apiPort, got.API_PORT)
 			}
 		})
 	}
