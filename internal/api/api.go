@@ -49,7 +49,7 @@ func WriteJSON[T any](w http.ResponseWriter, status int, v T) error {
 }
 
 func WriteHTTPError(w http.ResponseWriter, status int) {
-	http.Error(w, http.StatusText(status), status)
+	http.Error(w, "", status)
 }
 
 func NewAPIServer(address string, db *sqlx.DB, logger *log.Logger) *APIServer {
