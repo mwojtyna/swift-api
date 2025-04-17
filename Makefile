@@ -15,7 +15,10 @@ serve: build-server
 parse: build-parser
 	@./$(PARSER_BIN) $(CSV)
 
+test:
+	@go test ./...
+
 clean:
 	@rm -rf bin
 
-.PHONY: build-server build-parser serve parse migrate clean
+.PHONY: build-server build-parser serve parse test clean
