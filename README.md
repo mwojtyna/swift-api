@@ -7,12 +7,16 @@ Home exercise for potential interns
 ```mermaid
 erDiagram
     bank {
-        varchar_11 swift_code PK
-        varchar_11 hq_swift_code FK "NOT NULL | INDEX"
-        text bank_name "NOT NULL"
-        text address  "NOT NULL"
-        varchar_2 country_iso2_code "NOT NULL | INDEX"
-        text country_name "NOT NULL"
+        VARCHAR(11) swift_code PK
+        VARCHAR(11) hq_swift_code FK "NOT NULL | INDEX"
+        TEXT bank_name "NOT NULL"
+        TEXT address  "NOT NULL"
+        VARCHAR(2) country_iso2_code "NOT NULL | INDEX"
+        TEXT country_name "NOT NULL"
     }
     bank 1--0+ bank: "branches"
 ```
+
+## Testing
+
+- table-driven approach
