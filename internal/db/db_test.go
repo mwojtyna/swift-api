@@ -41,8 +41,7 @@ func TestIsEmpty(t *testing.T) {
 		})
 		t.Run("non-empty db returns false", func(t *testing.T) {
 			// Arrange
-			_, err := db.NamedExec(`INSERT INTO bank (swift_code, hq_swift_code, bank_name, address, country_iso2_code, country_name) 
-		VALUES (:swift_code, :hq_swift_code, :bank_name, :address, :country_iso2_code, :country_name);`, Bank{})
+			err := insertBank(db, Bank{})
 			require.NoError(t, err)
 
 			// Act

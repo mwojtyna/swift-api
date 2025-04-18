@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/mwojtyna/swift-api/internal/utils"
 	"github.com/stretchr/testify/assert"
@@ -15,6 +16,7 @@ var (
 	hqBank = Bank{
 		SwiftCode:       "HQTESTBANK",
 		HqSwiftCode:     sql.NullString{},
+		IsHeadquarter:   true,
 		BankName:        "HQ Bank",
 		Address:         "456 HQ Street",
 		CountryISO2Code: "GB",
@@ -23,6 +25,7 @@ var (
 	branchBank = Bank{
 		SwiftCode:       "BRANCHBANK",
 		HqSwiftCode:     sql.NullString{String: "HQTESTBANK", Valid: true},
+		IsHeadquarter:   false,
 		BankName:        "Branch Bank",
 		Address:         "789 Branch Ave",
 		CountryISO2Code: "GB",
@@ -31,6 +34,7 @@ var (
 	branch1 = Bank{
 		SwiftCode:       "BRANCH001",
 		HqSwiftCode:     sql.NullString{String: "HQTESTBANK", Valid: true},
+		IsHeadquarter:   false,
 		BankName:        "Branch 1",
 		Address:         "123 Branch St",
 		CountryISO2Code: "GB",
@@ -39,6 +43,7 @@ var (
 	branch2 = Bank{
 		SwiftCode:       "BRANCH002",
 		HqSwiftCode:     sql.NullString{String: "HQTESTBANK", Valid: true},
+		IsHeadquarter:   false,
 		BankName:        "Branch 2",
 		Address:         "456 Branch Ave",
 		CountryISO2Code: "GB",
@@ -47,6 +52,7 @@ var (
 	otherBank = Bank{
 		SwiftCode:       "OTHERBANK",
 		HqSwiftCode:     sql.NullString{},
+		IsHeadquarter:   false,
 		BankName:        "Other Bank",
 		Address:         "789 Other St",
 		CountryISO2Code: "US",
@@ -55,6 +61,7 @@ var (
 	usBank1 = Bank{
 		SwiftCode:       "USBANK001",
 		HqSwiftCode:     sql.NullString{},
+		IsHeadquarter:   false,
 		BankName:        "US Bank 1",
 		Address:         "123 Main St",
 		CountryISO2Code: "US",
@@ -63,6 +70,7 @@ var (
 	usBank2 = Bank{
 		SwiftCode:       "USBANK002",
 		HqSwiftCode:     sql.NullString{String: "USBANK001", Valid: true},
+		IsHeadquarter:   false,
 		BankName:        "US Bank 2",
 		Address:         "456 Oak Ave",
 		CountryISO2Code: "US",
@@ -71,6 +79,7 @@ var (
 	ukBank = Bank{
 		SwiftCode:       "UKBANK001",
 		HqSwiftCode:     sql.NullString{},
+		IsHeadquarter:   false,
 		BankName:        "UK Bank",
 		Address:         "789 High St",
 		CountryISO2Code: "GB",
@@ -79,6 +88,7 @@ var (
 	invalidBranch = Bank{
 		SwiftCode:       "BADBRANCH",
 		HqSwiftCode:     sql.NullString{String: "NONEXISTENT", Valid: true},
+		IsHeadquarter:   false,
 		BankName:        "Invalid Branch",
 		Address:         "123 Invalid St",
 		CountryISO2Code: "GB",
@@ -101,7 +111,7 @@ func TestGetBank(t *testing.T) {
 			err := InsertBank(db, hqBank)
 			require.NoError(t, err)
 			t.Cleanup(func() {
-				db.Exec("TRUNCATE bank")
+				truncateBanks(db)
 			})
 
 			// Act
@@ -119,7 +129,7 @@ func TestGetBank(t *testing.T) {
 			err = InsertBank(db, branchBank)
 			require.NoError(t, err)
 			t.Cleanup(func() {
-				db.Exec("TRUNCATE bank")
+				truncateBanks(db)
 			})
 
 			// Act
@@ -161,7 +171,7 @@ func TestGetBankBranches(t *testing.T) {
 			err = InsertBank(db, branch2)
 			require.NoError(t, err)
 			t.Cleanup(func() {
-				db.Exec("TRUNCATE bank")
+				truncateBanks(db)
 			})
 
 			// Act
@@ -179,7 +189,7 @@ func TestGetBankBranches(t *testing.T) {
 			err := InsertBank(db, hqBank)
 			require.NoError(t, err)
 			t.Cleanup(func() {
-				db.Exec("TRUNCATE bank")
+				truncateBanks(db)
 			})
 
 			// Act
@@ -206,7 +216,7 @@ func TestGetBankBranches(t *testing.T) {
 			err = InsertBank(db, branch1)
 			require.NoError(t, err)
 			t.Cleanup(func() {
-				db.Exec("TRUNCATE bank")
+				truncateBanks(db)
 			})
 
 			// Act
@@ -226,7 +236,7 @@ func TestGetBankBranches(t *testing.T) {
 			err = InsertBank(db, otherBank)
 			require.NoError(t, err)
 			t.Cleanup(func() {
-				db.Exec("TRUNCATE bank")
+				truncateBanks(db)
 			})
 
 			// Act
@@ -252,23 +262,17 @@ func TestGetBanksInCountry(t *testing.T) {
 
 		t.Run("returns banks for valid country code", func(t *testing.T) {
 			// Arrange
-			_, err = db.NamedExec(`INSERT INTO bank VALUES 
-			(:swift_code, :hq_swift_code, :bank_name, :address, :country_iso2_code, :country_name)`,
-				usBank1)
+			err := insertBank(db, usBank1)
 			require.NoError(t, err)
 
-			_, err = db.NamedExec(`INSERT INTO bank VALUES 
-				(:swift_code, :hq_swift_code, :bank_name, :address, :country_iso2_code, :country_name)`,
-				usBank2)
+			err = insertBank(db, usBank2)
 			require.NoError(t, err)
 
-			_, err = db.NamedExec(`INSERT INTO bank VALUES 
-				(:swift_code, :hq_swift_code, :bank_name, :address, :country_iso2_code, :country_name)`,
-				ukBank)
+			err = insertBank(db, ukBank)
 			require.NoError(t, err)
 
 			t.Cleanup(func() {
-				db.Exec("TRUNCATE bank")
+				truncateBanks(db)
 			})
 
 			// Act
@@ -284,12 +288,10 @@ func TestGetBanksInCountry(t *testing.T) {
 
 		t.Run("returns empty slice for country with no banks", func(t *testing.T) {
 			// Arrange
-			_, err = db.NamedExec(`INSERT INTO bank VALUES 
-			(:swift_code, :hq_swift_code, :bank_name, :address, :country_iso2_code, :country_name)`,
-				usBank1)
+			err := insertBank(db, usBank1)
 			require.NoError(t, err)
 			t.Cleanup(func() {
-				db.Exec("TRUNCATE bank")
+				truncateBanks(db)
 			})
 
 			// Act
@@ -313,11 +315,10 @@ func TestCheckBankHqExists(t *testing.T) {
 
 		t.Run("returns false when HQ doesn't exist", func(t *testing.T) {
 			// Arrange
-			db.NamedExec(`INSERT INTO bank VALUES 
-				(:swift_code, :hq_swift_code, :bank_name, :address, :country_iso2_code, :country_name)`,
-				branchBank)
+			err := insertBanks(db, []Bank{hqBank, branch1})
+			require.NoError(t, err)
 			t.Cleanup(func() {
-				db.Exec("TRUNCATE bank")
+				truncateBanks(db)
 			})
 
 			// Act
@@ -330,16 +331,14 @@ func TestCheckBankHqExists(t *testing.T) {
 
 		t.Run("returns true when branch's HQ exists", func(t *testing.T) {
 			// Arrange
-			_, err := db.NamedExec(`INSERT INTO bank VALUES 
-				(:swift_code, :hq_swift_code, :bank_name, :address, :country_iso2_code, :country_name)`,
-				hqBank)
+			err := insertBank(db, hqBank)
 			require.NoError(t, err)
-			_, err = db.NamedExec(`INSERT INTO bank VALUES 
-				(:swift_code, :hq_swift_code, :bank_name, :address, :country_iso2_code, :country_name)`,
-				branchBank)
+
+			err = insertBank(db, branchBank)
 			require.NoError(t, err)
+
 			t.Cleanup(func() {
-				db.Exec("TRUNCATE bank")
+				truncateBanks(db)
 			})
 
 			// Act
@@ -365,7 +364,7 @@ func TestInsertBanks(t *testing.T) {
 			// Arrange
 			banks := []Bank{hqBank, branchBank}
 			t.Cleanup(func() {
-				db.Exec("TRUNCATE bank")
+				truncateBanks(db)
 			})
 
 			// Act
@@ -384,12 +383,10 @@ func TestInsertBanks(t *testing.T) {
 
 		t.Run("returns error for duplicate swift code", func(t *testing.T) {
 			// Arrange - insert first bank
-			_, err := db.NamedExec(`INSERT INTO bank VALUES 
-				(:swift_code, :hq_swift_code, :bank_name, :address, :country_iso2_code, :country_name)`,
-				hqBank)
+			err := InsertBank(db, hqBank)
 			require.NoError(t, err)
 			t.Cleanup(func() {
-				db.Exec("TRUNCATE bank")
+				truncateBanks(db)
 			})
 
 			// Try to insert duplicate
@@ -417,7 +414,7 @@ func TestInsertBanks(t *testing.T) {
 			}
 			banks := []Bank{invalidBranch}
 			t.Cleanup(func() {
-				db.Exec("TRUNCATE bank")
+				truncateBanks(db)
 			})
 
 			// Act
@@ -444,7 +441,7 @@ func TestInsertBank(t *testing.T) {
 		t.Run("successfully inserts HQ bank", func(t *testing.T) {
 			// Arrange
 			t.Cleanup(func() {
-				db.Exec("TRUNCATE bank")
+				truncateBanks(db)
 			})
 
 			// Act
@@ -465,7 +462,7 @@ func TestInsertBank(t *testing.T) {
 			err := InsertBank(db, hqBank)
 			require.NoError(t, err)
 			t.Cleanup(func() {
-				db.Exec("TRUNCATE bank")
+				truncateBanks(db)
 			})
 
 			// Act
@@ -486,7 +483,7 @@ func TestInsertBank(t *testing.T) {
 			err := InsertBank(db, hqBank)
 			require.NoError(t, err)
 			t.Cleanup(func() {
-				db.Exec("TRUNCATE bank")
+				truncateBanks(db)
 			})
 
 			// Act - try to insert same bank again
@@ -510,7 +507,7 @@ func TestInsertBank(t *testing.T) {
 				CountryName:     "United Kingdom",
 			}
 			t.Cleanup(func() {
-				db.Exec("TRUNCATE bank")
+				truncateBanks(db)
 			})
 
 			// Act
@@ -536,16 +533,14 @@ func TestDeleteBank(t *testing.T) {
 
 		t.Run("successfully deletes HQ bank and nullifies branches", func(t *testing.T) {
 			// Arrange
-			_, err := db.NamedExec(`INSERT INTO bank VALUES 
-				(:swift_code, :hq_swift_code, :bank_name, :address, :country_iso2_code, :country_name)`,
-				hqBank)
+			err := insertBank(db, hqBank)
 			require.NoError(t, err)
-			_, err = db.NamedExec(`INSERT INTO bank VALUES 
-				(:swift_code, :hq_swift_code, :bank_name, :address, :country_iso2_code, :country_name)`,
-				branchBank)
+
+			err = insertBank(db, branchBank)
 			require.NoError(t, err)
+
 			t.Cleanup(func() {
-				db.Exec("TRUNCATE bank")
+				truncateBanks(db)
 			})
 
 			// Act
@@ -569,12 +564,10 @@ func TestDeleteBank(t *testing.T) {
 
 		t.Run("successfully deletes standalone bank", func(t *testing.T) {
 			// Arrange
-			_, err := db.NamedExec(`INSERT INTO bank VALUES 
-				(:swift_code, :hq_swift_code, :bank_name, :address, :country_iso2_code, :country_name)`,
-				hqBank)
+			err := insertBank(db, hqBank)
 			require.NoError(t, err)
 			t.Cleanup(func() {
-				db.Exec("TRUNCATE bank")
+				truncateBanks(db)
 			})
 
 			// Act
@@ -599,4 +592,20 @@ func TestDeleteBank(t *testing.T) {
 			assert.True(t, errors.Is(err, sql.ErrNoRows))
 		})
 	})
+}
+
+func insertBanks(db *sqlx.DB, bank []Bank) error {
+	_, err := db.NamedExec(`INSERT INTO bank (swift_code, hq_swift_code, is_headquarter, bank_name, address, country_iso2_code, country_name)
+		VALUES (:swift_code, :hq_swift_code, :is_headquarter, :bank_name, :address, :country_iso2_code, :country_name)`,
+		bank)
+	return err
+}
+
+func insertBank(db *sqlx.DB, bank Bank) error {
+	return insertBanks(db, []Bank{bank})
+}
+
+func truncateBanks(db *sqlx.DB) error {
+	_, err := db.Exec("TRUNCATE bank")
+	return err
 }

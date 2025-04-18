@@ -4,6 +4,7 @@
 CREATE TABLE IF NOT EXISTS bank (
 	swift_code VARCHAR(11) PRIMARY KEY,
 	hq_swift_code VARCHAR(11) REFERENCES bank(swift_code) ON DELETE SET NULL,
+	is_headquarter BOOL NOT NULL,
 	bank_name TEXT NOT NULL,
 	address TEXT NOT NULL,
 	country_iso2_code VARCHAR(2) NOT NULL,

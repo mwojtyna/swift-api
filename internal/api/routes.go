@@ -27,7 +27,7 @@ func (s *ApiServer) handleGetSwiftCodeV1(w http.ResponseWriter, r *http.Request)
 		return err
 	}
 
-	if bank.IsHq() {
+	if bank.IsHeadquarter {
 		branchesRaw, err := db.GetBankBranches(s.db, swiftCode)
 		if err != nil {
 			return err
@@ -38,7 +38,7 @@ func (s *ApiServer) handleGetSwiftCodeV1(w http.ResponseWriter, r *http.Request)
 				Address:       b.Address,
 				BankName:      b.BankName,
 				CountryISO2:   b.CountryISO2Code,
-				IsHeadquarter: b.IsHq(),
+				IsHeadquarter: b.IsHeadquarter,
 				SwiftCode:     b.SwiftCode,
 			}
 		})
@@ -48,7 +48,7 @@ func (s *ApiServer) handleGetSwiftCodeV1(w http.ResponseWriter, r *http.Request)
 			BankName:      bank.BankName,
 			CountryISO2:   bank.CountryISO2Code,
 			CountryName:   bank.CountryName,
-			IsHeadquarter: bank.IsHq(),
+			IsHeadquarter: bank.IsHeadquarter,
 			SwiftCode:     bank.SwiftCode,
 			Branches:      branches,
 		}
@@ -63,7 +63,7 @@ func (s *ApiServer) handleGetSwiftCodeV1(w http.ResponseWriter, r *http.Request)
 			BankName:      bank.BankName,
 			CountryISO2:   bank.CountryISO2Code,
 			CountryName:   bank.CountryName,
-			IsHeadquarter: bank.IsHq(),
+			IsHeadquarter: bank.IsHeadquarter,
 			SwiftCode:     bank.SwiftCode,
 		}
 
@@ -93,7 +93,7 @@ func (s *ApiServer) handleGetSwiftCodesForCountryV1(w http.ResponseWriter, r *ht
 			Address:       b.Address,
 			BankName:      b.BankName,
 			CountryISO2:   b.CountryISO2Code,
-			IsHeadquarter: b.IsHq(),
+			IsHeadquarter: b.IsHeadquarter,
 			SwiftCode:     b.SwiftCode,
 		}
 	})

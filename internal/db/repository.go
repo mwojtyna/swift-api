@@ -65,8 +65,8 @@ func InsertBank(db *sqlx.DB, bank Bank) error {
 }
 
 func InsertBanks(db *sqlx.DB, banks []Bank) error {
-	_, err := db.NamedExec(`INSERT INTO bank (swift_code, hq_swift_code, bank_name, address, country_iso2_code, country_name) 
-		VALUES (:swift_code, :hq_swift_code, :bank_name, :address, :country_iso2_code, :country_name);`, banks)
+	_, err := db.NamedExec(`INSERT INTO bank (swift_code, hq_swift_code, is_headquarter, bank_name, address, country_iso2_code, country_name) 
+		VALUES (:swift_code, :hq_swift_code, :is_headquarter, :bank_name, :address, :country_iso2_code, :country_name);`, banks)
 	if err != nil {
 		return err
 	}
