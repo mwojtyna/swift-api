@@ -26,13 +26,13 @@ func ParseCsv(r io.Reader) ([]db.Bank, error) {
 	}
 
 	for i, record := range records[1:] { // Skip header row
-		countryCode := strings.ToUpper(record[0])
-		swiftCode := record[1]
+		countryCode := strings.TrimSpace(strings.ToUpper(record[0]))
+		swiftCode := strings.TrimSpace(record[1])
 		// Skip index 2 (CODE TYPE) - "Redundant columns in the file may be omitted."
-		bankName := record[3]
-		bankAddress := record[4]
-		townName := record[5] // Read town name in case the address is empty
-		countryName := strings.ToUpper(record[6])
+		bankName := strings.TrimSpace(record[3])
+		bankAddress := strings.TrimSpace(record[4])
+		townName := strings.TrimSpace(record[5]) // Read town name in case the address is empty
+		countryName := strings.TrimSpace(strings.ToUpper(record[6]))
 		// Skip index 7 (TIME ZONE) - "Redundant columns in the file may be omitted."
 
 		if len(countryCode) != 2 {
@@ -49,19 +49,20 @@ func ParseCsv(r io.Reader) ([]db.Bank, error) {
 		} else {
 			address = bankAddress
 		}
+
+		isHq, hqCode := IsSwiftCodeHq(swiftCode)
 		bank := db.Bank{
 			SwiftCode:       swiftCode,
 			HqSwiftCode:     sql.NullString{},
+			IsHeadquarter:   isHq,
 			BankName:        bankName,
 			Address:         address,
 			CountryISO2Code: countryCode,
 			CountryName:     countryName,
 		}
-
 		// If swift code doesn't end with XXX, then the first 8 characters are the swift code for this bank's HQ (plus XXX)
 		// We assume that this HQ exists, later we remove ones that don't (we use a set to keep track of HQs that exist)
 		// I think this is the best way to minimize iterating through the banks
-		isHq, hqCode := IsSwiftCodeHq(swiftCode)
 		if !isHq {
 			bank.HqSwiftCode = sql.NullString{
 				String: hqCode,

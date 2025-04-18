@@ -25,6 +25,7 @@ PL,BPHKPLPKCUS,BIC11,BANK BPH SA,"UL. CYPRIANA KAMILA NORWIDA 1  GDANSK, POMORSK
 				{
 					SwiftCode:       "BPHKPLPKXXX",
 					HqSwiftCode:     sql.NullString{},
+					IsHeadquarter:   true,
 					BankName:        "BANK BPH SA",
 					Address:         "UL. CYPRIANA KAMILA NORWIDA 1  GDANSK, POMORSKIE, 80-280",
 					CountryISO2Code: "PL",
@@ -33,6 +34,7 @@ PL,BPHKPLPKCUS,BIC11,BANK BPH SA,"UL. CYPRIANA KAMILA NORWIDA 1  GDANSK, POMORSK
 				{
 					SwiftCode:       "BPHKPLPKCUS",
 					HqSwiftCode:     sql.NullString{String: "BPHKPLPKXXX", Valid: true},
+					IsHeadquarter:   false,
 					BankName:        "BANK BPH SA",
 					Address:         "UL. CYPRIANA KAMILA NORWIDA 1  GDANSK, POMORSKIE, 80-280",
 					CountryISO2Code: "PL",
@@ -48,6 +50,7 @@ PL,BPHKPLPKXXX,BIC11,BANK BPH SA,,GDANSK,POLAND,Europe/Warsaw`,
 				{
 					SwiftCode:       "BPHKPLPKXXX",
 					HqSwiftCode:     sql.NullString{},
+					IsHeadquarter:   true,
 					BankName:        "BANK BPH SA",
 					Address:         "GDANSK",
 					CountryISO2Code: "PL",
@@ -74,15 +77,16 @@ PL,BPHKPLPKXXX,BIC11,BANK BPH SA,"UL. CYPRIANA KAMILA NORWIDA 1  GDANSK, POMORSK
 			wantErr: true,
 		},
 		{
-			name: "branch without hq",
+			name: "branch without hq, also trims whitespace",
 			input: `COUNTRY,SWIFT CODE,CODE TYPE,BANK NAME,BANK ADDRESS,TOWN NAME,COUNTRY NAME,TIME ZONE
 PL,ALBPPLP1BMW,BIC11,ALIOR BANK SPOLKA AKCYJNA,"  WARSZAWA, MAZOWIECKIE",WARSZAWA,POLAND,Europe/Warsaw`,
 			want: []db.Bank{
 				{
 					SwiftCode:       "ALBPPLP1BMW",
 					HqSwiftCode:     sql.NullString{},
+					IsHeadquarter:   false,
 					BankName:        "ALIOR BANK SPOLKA AKCYJNA",
-					Address:         "  WARSZAWA, MAZOWIECKIE",
+					Address:         "WARSZAWA, MAZOWIECKIE",
 					CountryISO2Code: "PL",
 					CountryName:     "POLAND",
 				},
