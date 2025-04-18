@@ -1,10 +1,14 @@
-FROM golang:1.24.2-bookworm AS builder
+FROM golang:1.24.2-bookworm 
+
 WORKDIR /app
 EXPOSE ${API_PORT}
-COPY . .
+
+RUN go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest 
+
+COPY go.mod go.sum ./
 RUN go mod download
+
+COPY . .
 RUN make build-parser && make build-server
 
-FROM builder AS runner
-
-CMD make parse && make serve
+CMD [ "./run.sh" ]

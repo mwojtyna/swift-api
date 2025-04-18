@@ -34,7 +34,8 @@ func main() {
 		logger.Fatalf(`ERROR checking if DB is empty: "%s"`, err.Error())
 	}
 	if !empty {
-		logger.Fatalln("Error: DB isn't empty")
+		logger.Println("DB isn't empty, will not parse csv")
+		os.Exit(0)
 	}
 
 	file, err := os.Open(csvName)

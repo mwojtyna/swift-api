@@ -1,4 +1,3 @@
--- TODO: Consider adding is_headquarters to table
 -- TODO: Consider CHECKs
 
 CREATE TABLE IF NOT EXISTS bank (
