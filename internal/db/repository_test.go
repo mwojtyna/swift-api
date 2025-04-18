@@ -11,6 +11,81 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var (
+	hqBank = Bank{
+		SwiftCode:       "HQTESTBANK",
+		HqSwiftCode:     sql.NullString{},
+		BankName:        "HQ Bank",
+		Address:         "456 HQ Street",
+		CountryISO2Code: "GB",
+		CountryName:     "United Kingdom",
+	}
+	branchBank = Bank{
+		SwiftCode:       "BRANCHBANK",
+		HqSwiftCode:     sql.NullString{String: "HQTESTBANK", Valid: true},
+		BankName:        "Branch Bank",
+		Address:         "789 Branch Ave",
+		CountryISO2Code: "GB",
+		CountryName:     "United Kingdom",
+	}
+	branch1 = Bank{
+		SwiftCode:       "BRANCH001",
+		HqSwiftCode:     sql.NullString{String: "HQTESTBANK", Valid: true},
+		BankName:        "Branch 1",
+		Address:         "123 Branch St",
+		CountryISO2Code: "GB",
+		CountryName:     "United Kingdom",
+	}
+	branch2 = Bank{
+		SwiftCode:       "BRANCH002",
+		HqSwiftCode:     sql.NullString{String: "HQTESTBANK", Valid: true},
+		BankName:        "Branch 2",
+		Address:         "456 Branch Ave",
+		CountryISO2Code: "GB",
+		CountryName:     "United Kingdom",
+	}
+	otherBank = Bank{
+		SwiftCode:       "OTHERBANK",
+		HqSwiftCode:     sql.NullString{},
+		BankName:        "Other Bank",
+		Address:         "789 Other St",
+		CountryISO2Code: "US",
+		CountryName:     "United States",
+	}
+	usBank1 = Bank{
+		SwiftCode:       "USBANK001",
+		HqSwiftCode:     sql.NullString{},
+		BankName:        "US Bank 1",
+		Address:         "123 Main St",
+		CountryISO2Code: "US",
+		CountryName:     "United States",
+	}
+	usBank2 = Bank{
+		SwiftCode:       "USBANK002",
+		HqSwiftCode:     sql.NullString{String: "USBANK001", Valid: true},
+		BankName:        "US Bank 2",
+		Address:         "456 Oak Ave",
+		CountryISO2Code: "US",
+		CountryName:     "United States",
+	}
+	ukBank = Bank{
+		SwiftCode:       "UKBANK001",
+		HqSwiftCode:     sql.NullString{},
+		BankName:        "UK Bank",
+		Address:         "789 High St",
+		CountryISO2Code: "GB",
+		CountryName:     "United Kingdom",
+	}
+	invalidBranch = Bank{
+		SwiftCode:       "BADBRANCH",
+		HqSwiftCode:     sql.NullString{String: "NONEXISTENT", Valid: true},
+		BankName:        "Invalid Branch",
+		Address:         "123 Invalid St",
+		CountryISO2Code: "GB",
+		CountryName:     "United Kingdom",
+	}
+)
+
 func TestGetBank(t *testing.T) {
 	t.Parallel()
 
@@ -20,25 +95,6 @@ func TestGetBank(t *testing.T) {
 		t.Cleanup(func() {
 			db.Close()
 		})
-
-		// Test data
-		hqBank := Bank{
-			SwiftCode:       "HQTESTBANK",
-			HqSwiftCode:     sql.NullString{},
-			BankName:        "HQ Bank",
-			Address:         "456 HQ Street",
-			CountryISO2Code: "GB",
-			CountryName:     "United Kingdom",
-		}
-
-		branchBank := Bank{
-			SwiftCode:       "BRANCHBANK",
-			HqSwiftCode:     sql.NullString{String: "HQTESTBANK", Valid: true},
-			BankName:        "Branch Bank",
-			Address:         "789 Branch Ave",
-			CountryISO2Code: "GB",
-			CountryName:     "United Kingdom",
-		}
 
 		t.Run("successfully retrieves HQ bank", func(t *testing.T) {
 			// Arrange
@@ -95,43 +151,6 @@ func TestGetBankBranches(t *testing.T) {
 		t.Cleanup(func() {
 			db.Close()
 		})
-
-		// Test data
-		hqBank := Bank{
-			SwiftCode:       "HQTESTBANK",
-			HqSwiftCode:     sql.NullString{},
-			BankName:        "HQ Bank",
-			Address:         "456 HQ Street",
-			CountryISO2Code: "GB",
-			CountryName:     "United Kingdom",
-		}
-
-		branch1 := Bank{
-			SwiftCode:       "BRANCH001",
-			HqSwiftCode:     sql.NullString{String: "HQTESTBANK", Valid: true},
-			BankName:        "Branch 1",
-			Address:         "123 Branch St",
-			CountryISO2Code: "GB",
-			CountryName:     "United Kingdom",
-		}
-
-		branch2 := Bank{
-			SwiftCode:       "BRANCH002",
-			HqSwiftCode:     sql.NullString{String: "HQTESTBANK", Valid: true},
-			BankName:        "Branch 2",
-			Address:         "456 Branch Ave",
-			CountryISO2Code: "GB",
-			CountryName:     "United Kingdom",
-		}
-
-		otherBank := Bank{
-			SwiftCode:       "OTHERBANK",
-			HqSwiftCode:     sql.NullString{},
-			BankName:        "Other Bank",
-			Address:         "789 Other St",
-			CountryISO2Code: "US",
-			CountryName:     "United States",
-		}
 
 		t.Run("returns branches for valid HQ bank", func(t *testing.T) {
 			// Arrange
@@ -231,34 +250,6 @@ func TestGetBanksInCountry(t *testing.T) {
 			db.Close()
 		})
 
-		// Create test data
-		usBank1 := Bank{
-			SwiftCode:       "USBANK001",
-			HqSwiftCode:     sql.NullString{},
-			BankName:        "US Bank 1",
-			Address:         "123 Main St",
-			CountryISO2Code: "US",
-			CountryName:     "United States",
-		}
-
-		usBank2 := Bank{
-			SwiftCode:       "USBANK002",
-			HqSwiftCode:     sql.NullString{String: "USBANK001", Valid: true},
-			BankName:        "US Bank 2",
-			Address:         "456 Oak Ave",
-			CountryISO2Code: "US",
-			CountryName:     "United States",
-		}
-
-		ukBank := Bank{
-			SwiftCode:       "UKBANK001",
-			HqSwiftCode:     sql.NullString{},
-			BankName:        "UK Bank",
-			Address:         "789 High St",
-			CountryISO2Code: "GB",
-			CountryName:     "United Kingdom",
-		}
-
 		t.Run("returns banks for valid country code", func(t *testing.T) {
 			// Arrange
 			_, err = db.NamedExec(`INSERT INTO bank VALUES 
@@ -320,25 +311,6 @@ func TestCheckBankHqExists(t *testing.T) {
 			db.Close()
 		})
 
-		// Test data templates
-		hqBank := Bank{
-			SwiftCode:       "HQTESTBANK",
-			HqSwiftCode:     sql.NullString{},
-			BankName:        "HQ Bank",
-			Address:         "456 HQ Street",
-			CountryISO2Code: "GB",
-			CountryName:     "United Kingdom",
-		}
-
-		branchBank := Bank{
-			SwiftCode:       "BRANCHBANK",
-			HqSwiftCode:     sql.NullString{String: "HQTESTBANK", Valid: true},
-			BankName:        "Branch Bank",
-			Address:         "789 Branch Ave",
-			CountryISO2Code: "GB",
-			CountryName:     "United Kingdom",
-		}
-
 		t.Run("returns false when HQ doesn't exist", func(t *testing.T) {
 			// Arrange
 			db.NamedExec(`INSERT INTO bank VALUES 
@@ -388,25 +360,6 @@ func TestInsertBanks(t *testing.T) {
 		t.Cleanup(func() {
 			db.Close()
 		})
-
-		// Test data
-		hqBank := Bank{
-			SwiftCode:       "HQTESTBANK",
-			HqSwiftCode:     sql.NullString{},
-			BankName:        "HQ Bank",
-			Address:         "456 HQ Street",
-			CountryISO2Code: "GB",
-			CountryName:     "United Kingdom",
-		}
-
-		branchBank := Bank{
-			SwiftCode:       "BRANCHBANK",
-			HqSwiftCode:     sql.NullString{String: "HQTESTBANK", Valid: true},
-			BankName:        "Branch Bank",
-			Address:         "789 Branch Ave",
-			CountryISO2Code: "GB",
-			CountryName:     "United Kingdom",
-		}
 
 		t.Run("successfully inserts multiple banks", func(t *testing.T) {
 			// Arrange
@@ -487,25 +440,6 @@ func TestInsertBank(t *testing.T) {
 		t.Cleanup(func() {
 			db.Close()
 		})
-
-		// Test data
-		hqBank := Bank{
-			SwiftCode:       "HQTESTBANK",
-			HqSwiftCode:     sql.NullString{},
-			BankName:        "HQ Bank",
-			Address:         "456 HQ Street",
-			CountryISO2Code: "GB",
-			CountryName:     "United Kingdom",
-		}
-
-		branchBank := Bank{
-			SwiftCode:       "BRANCHBANK",
-			HqSwiftCode:     sql.NullString{String: "HQTESTBANK", Valid: true},
-			BankName:        "Branch Bank",
-			Address:         "789 Branch Ave",
-			CountryISO2Code: "GB",
-			CountryName:     "United Kingdom",
-		}
 
 		t.Run("successfully inserts HQ bank", func(t *testing.T) {
 			// Arrange
@@ -599,25 +533,6 @@ func TestDeleteBank(t *testing.T) {
 		t.Cleanup(func() {
 			db.Close()
 		})
-
-		// Test data
-		hqBank := Bank{
-			SwiftCode:       "HQTESTBANK",
-			HqSwiftCode:     sql.NullString{},
-			BankName:        "HQ Bank",
-			Address:         "456 HQ Street",
-			CountryISO2Code: "GB",
-			CountryName:     "United Kingdom",
-		}
-
-		branchBank := Bank{
-			SwiftCode:       "BRANCHBANK",
-			HqSwiftCode:     sql.NullString{String: "HQTESTBANK", Valid: true},
-			BankName:        "Branch Bank",
-			Address:         "789 Branch Ave",
-			CountryISO2Code: "GB",
-			CountryName:     "United Kingdom",
-		}
 
 		t.Run("successfully deletes HQ bank and nullifies branches", func(t *testing.T) {
 			// Arrange
