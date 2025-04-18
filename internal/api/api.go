@@ -71,7 +71,7 @@ func NewApiServer(address string, db *sqlx.DB, logger *log.Logger) *ApiServer {
 	}
 }
 
-func (s *ApiServer) Run() {
+func (s *ApiServer) NewRouter() *http.ServeMux {
 	routerV1 := http.NewServeMux()
 	routerV1.HandleFunc("GET /swift-codes/{swiftCode}", s.handleError(s.handleGetSwiftCodeV1))
 	routerV1.HandleFunc("GET /swift-codes/country/{countryISO2code}", s.handleError(s.handleGetSwiftCodesForCountryV1))
@@ -81,6 +81,11 @@ func (s *ApiServer) Run() {
 	rootRouter := http.NewServeMux()
 	rootRouter.Handle("/v1/", http.StripPrefix("/v1", routerV1))
 
+	return rootRouter
+}
+
+func (s *ApiServer) Run() {
+	rootRouter := s.NewRouter()
 	http.ListenAndServe(s.address, LoggingMiddleware(rootRouter, s.logger))
 }
 

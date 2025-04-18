@@ -18,6 +18,7 @@ func GetBank(db *sqlx.DB, swiftCode string) (Bank, error) {
 	return bank, nil
 }
 
+// Assumes the bank exists, if it doesn't it returns an empty slice
 func GetBankBranches(db *sqlx.DB, swiftCode string) ([]Bank, error) {
 	var branches []Bank
 

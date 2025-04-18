@@ -24,8 +24,7 @@ type TestWithPostgresArgs struct {
 func TestWithPostgres(f func(TestWithPostgresArgs)) {
 	env, err := config.LoadEnv()
 	if err != nil {
-		log.Println("Failed to load env")
-		return
+		log.Fatalln("Failed to load env")
 	}
 
 	ctx := context.Background()
@@ -34,8 +33,7 @@ func TestWithPostgres(f func(TestWithPostgresArgs)) {
 	pattern := filepath.Join(env.ProjectRootPath, migrationsFolder, "*up*.sql")
 	migrations, err := filepath.Glob(pattern)
 	if err != nil {
-		log.Println("Failed to search for migrations")
-		return
+		log.Fatalln("Failed to search for migrations")
 	}
 
 	pc, err := postgres.Run(ctx,
@@ -55,13 +53,12 @@ func TestWithPostgres(f func(TestWithPostgresArgs)) {
 		}
 	}()
 	if err != nil {
-		log.Printf("failed to start container: %s", err)
-		return
+		log.Fatalf("failed to start container: %s", err)
 	}
 
 	port, err := pc.MappedPort(ctx, "5432")
 	if err != nil {
-		log.Println("failed to get port")
+		log.Fatalln("failed to get port")
 	}
 	env.DB_PORT = port.Port()
 

@@ -16,10 +16,7 @@ import (
 
 func (s *ApiServer) handleGetSwiftCodeV1(w http.ResponseWriter, r *http.Request) error {
 	swiftCode := r.PathValue("swiftCode")
-	if swiftCode == "" {
-		WriteHttpError(w, http.StatusBadRequest)
-		return nil
-	}
+	// Don't have to check if swiftCode is empty, because then the route would not match
 
 	bank, err := db.GetBank(s.db, swiftCode)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -185,10 +182,7 @@ func (s *ApiServer) handleAddSwiftCodeV1(w http.ResponseWriter, r *http.Request)
 
 func (s *ApiServer) handleDeleteSwiftCodeV1(w http.ResponseWriter, r *http.Request) error {
 	swiftCode := r.PathValue("swiftCode")
-	if swiftCode == "" {
-		WriteHttpError(w, http.StatusBadRequest)
-		return nil
-	}
+	// Don't have to check if swiftCode is empty, because then the route would not match
 
 	err := db.DeleteBank(s.db, swiftCode)
 	if errors.Is(err, sql.ErrNoRows) {

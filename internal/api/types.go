@@ -64,6 +64,6 @@ type AddSwiftCodeReq struct {
 	BankName      string `json:"bankName" validate:"required"`
 	CountryISO2   string `json:"countryISO2" validate:"required,uppercase,country_code"`
 	CountryName   string `json:"countryName" validate:"required,uppercase"`
-	IsHeadquarter bool   `json:"isHeadquarter" validate:"required"`
+	IsHeadquarter bool   `json:"isHeadquarter"` // Can't validate:"required" because zero-value for bool is false, meaning a branch bank won't be accepted
 	SwiftCode     string `json:"swiftCode" validate:"required,len=11"`
 }
