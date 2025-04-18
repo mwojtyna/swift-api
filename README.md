@@ -8,7 +8,7 @@ Home exercise for potential interns
 erDiagram
     bank {
         VARCHAR(11) swift_code PK
-        VARCHAR(11) hq_swift_code FK "NOT NULL | INDEX"
+        VARCHAR(11) hq_swift_code FK "INDEX"
         BOOL is_headquarter "NOT NULL"
         TEXT bank_name "NOT NULL"
         TEXT address  "NOT NULL"
