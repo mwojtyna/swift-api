@@ -26,7 +26,7 @@ type Env struct {
 	DB_HOST         string  `validate:"required"`
 	API_PORT        string  `validate:"required"`
 	SWIFTAPI_ENV    envType `validate:"required"`
-	ProjectRootPath string  `validate:"required"`
+	ProjectRootPath string
 }
 
 func LoadEnv() (Env, error) {

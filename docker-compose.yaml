@@ -1,6 +1,19 @@
 name: swift-api
 
 services:
+  api:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    container_name: api
+    environment:
+      - SWIFTAPI_ENV=production
+    ports:
+      - 8080:${API_PORT}
+    depends_on:
+      db:
+        condition: service_healthy
+
   # If you change db config make sure to update testcontainers.go
   db:
     image: postgres:17
@@ -13,6 +26,11 @@ services:
       - 5432:5432
     volumes:
       - data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   data:
