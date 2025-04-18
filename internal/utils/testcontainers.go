@@ -16,9 +16,10 @@ const pgImage = "postgres:17"
 const migrationsFolder = "migrations"
 
 type TestWithPostgresArgs struct {
-	Pc  *postgres.PostgresContainer
-	Env *config.Env
-	Ctx context.Context
+	Pc   *postgres.PostgresContainer
+	Env  *config.Env
+	Port string
+	Ctx  context.Context
 }
 
 func TestWithPostgres(f func(TestWithPostgresArgs)) {
@@ -60,11 +61,11 @@ func TestWithPostgres(f func(TestWithPostgresArgs)) {
 	if err != nil {
 		log.Fatalln("failed to get port")
 	}
-	env.DB_PORT = port.Port()
 
 	f(TestWithPostgresArgs{
-		Pc:  pc,
-		Env: &env,
-		Ctx: ctx,
+		Pc:   pc,
+		Env:  &env,
+		Port: port.Port(),
+		Ctx:  ctx,
 	})
 }

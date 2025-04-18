@@ -12,9 +12,11 @@ const (
 	UniqueViolationErrorCode     = pq.ErrorCode("23505")
 )
 
-func Connect(user string, password string, dbName string, dbPort string) (*sqlx.DB, error) {
+const Port = "5432"
+
+func Connect(user string, password string, dbName string, host string, port string) (*sqlx.DB, error) {
 	// Disable SSL, not needed for this project
-	connStr := fmt.Sprintf("postgres://%s:%s@localhost:%s/%s?sslmode=disable", user, password, dbPort, dbName)
+	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", user, password, host, port, dbName)
 
 	db, err := sqlx.Open("postgres", connStr)
 	if err != nil {

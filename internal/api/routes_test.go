@@ -23,7 +23,7 @@ type testApiArgs struct {
 
 func testApi(f func(testApiArgs)) {
 	utils.TestWithPostgres(func(args utils.TestWithPostgresArgs) {
-		pg, err := db.Connect(args.Env.DB_USER, args.Env.DB_PASS, args.Env.DB_NAME, args.Env.DB_PORT)
+		pg, err := db.Connect(args.Env.DB_USER, args.Env.DB_PASS, args.Env.DB_NAME, args.Env.DB_HOST, args.Port)
 		if err != nil {
 			log.Fatalln("failed to connect to db")
 		}

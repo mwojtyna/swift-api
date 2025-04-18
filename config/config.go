@@ -23,7 +23,7 @@ type Env struct {
 	DB_USER         string  `validate:"required"`
 	DB_PASS         string  `validate:"required"`
 	DB_NAME         string  `validate:"required"`
-	DB_PORT         string  `validate:"required"`
+	DB_HOST         string  `validate:"required"`
 	API_PORT        string  `validate:"required"`
 	SWIFTAPI_ENV    envType `validate:"required"`
 	ProjectRootPath string  `validate:"required"`
@@ -54,7 +54,7 @@ func LoadEnv() (Env, error) {
 		DB_USER:         os.Getenv("DB_USER"),
 		DB_PASS:         os.Getenv("DB_PASS"),
 		DB_NAME:         os.Getenv("DB_NAME"),
-		DB_PORT:         os.Getenv("DB_PORT"),
+		DB_HOST:         os.Getenv("DB_HOST"),
 		API_PORT:        os.Getenv("API_PORT"),
 		SWIFTAPI_ENV:    env,
 		ProjectRootPath: root,
