@@ -17,7 +17,7 @@ services:
   # If you change db config make sure to update testcontainers.go
   db:
     image: postgres:17
-    container_name: db
+    container_name: ${DB_HOST}
     environment:
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASS}
