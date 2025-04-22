@@ -1,7 +1,7 @@
 CSV=swift-codes.csv
 BIN_DIR=bin
 SERVER_BIN=$(BIN_DIR)/server
-PARSER_BIN=$(BIN_DIR)/parse-swift
+PARSER_BIN=$(BIN_DIR)/parse
 
 build-server: 
 	@go build -o $(SERVER_BIN) cmd/server/main.go
